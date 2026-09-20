@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:go_router/go_router.dart';
+
 import '../l10n/app_strings.dart';
+import '../router/app_router.dart';
+import '../state/auth_controller.dart';
 import '../theme/theme_controller.dart';
 
 /// The Settings tab: theme mode and a language section (English only for
@@ -13,6 +17,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final strings = context.strings;
     final themeController = context.watch<ThemeController>();
+    final auth = context.watch<AuthController>();
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.t('settings.title'))),
@@ -28,6 +33,55 @@ class SettingsScreen extends StatelessWidget {
                 child: ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
+                    // Hidden entirely when the build has no backend: an
+                    // account section that can't work is worse than none.
+                    if (auth.isAvailable) ...[
+                      _SectionCard(
+                        title: strings.t('auth.title'),
+                        child: auth.isSignedIn
+                            ? Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          strings.t('auth.signedInAs'),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall,
+                                        ),
+                                        Text(auth.email ?? ''),
+                                      ],
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: auth.busy ? null : auth.signOut,
+                                    child: Text(strings.t('auth.signOut')),
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    strings.t('auth.why'),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  FilledButton.tonal(
+                                    onPressed: () =>
+                                        context.push(Routes.signIn),
+                                    child: Text(strings.t('auth.signIn')),
+                                  ),
+                                ],
+                              ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     _SectionCard(
                       title: strings.t('settings.appearance'),
                       child: SegmentedButton<ThemeMode>(

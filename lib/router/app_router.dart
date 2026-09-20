@@ -9,6 +9,7 @@ import '../screens/prompt_detail_screen.dart';
 import '../screens/recipe_runner_screen.dart';
 import '../screens/saved_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/sign_in_screen.dart';
 import '../state/library_state.dart';
 import '../widgets/root_shell.dart';
 
@@ -29,6 +30,8 @@ abstract final class Routes {
   static String recipe(String variantId) => '/prompt/$variantId/run';
 
   static String folder(String folderId) => '/folder/$folderId';
+
+  static const signIn = '/sign-in';
 
   static String libraryWith(LibraryFilter filter) => Uri(
     path: library,
@@ -141,6 +144,11 @@ GoRouter createRouter({String initialLocation = Routes.home}) {
             ),
           ),
         ],
+      ),
+      GoRoute(
+        path: Routes.signIn,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const SignInScreen(),
       ),
       GoRoute(
         path: '/folder/:folderId',

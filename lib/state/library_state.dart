@@ -157,6 +157,10 @@ class LibraryState extends ChangeNotifier {
       return;
     }
     final data = await store!.load();
+    // Cleared because load() runs again after a sign-in, when the data
+    // underneath it has changed: stale overrides would show the previous
+    // account's votes.
+    _signalOverrides.clear();
     _favouriteIds
       ..clear()
       ..addAll(data.favouriteIds);

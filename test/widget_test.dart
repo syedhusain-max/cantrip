@@ -15,6 +15,7 @@ import 'package:promptcraft/models/freshness.dart';
 import 'package:promptcraft/models/prompt_folder.dart';
 import 'package:promptcraft/screens/prompt_detail_screen.dart';
 import 'package:promptcraft/widgets/prompt_card.dart';
+import 'package:promptcraft/state/auth_controller.dart';
 import 'package:promptcraft/state/library_state.dart';
 import 'package:promptcraft/utils/share_link.dart';
 import 'package:promptcraft/theme/theme_controller.dart';
@@ -23,6 +24,8 @@ Widget buildTestApp() => MultiProvider(
   providers: [
     ChangeNotifierProvider(create: (_) => ThemeController()),
     ChangeNotifierProvider(create: (_) => LibraryState()),
+    // No api: the local-only build, which is what most tests exercise.
+    ChangeNotifierProvider(create: (_) => AuthController()),
   ],
   child: const PromptCraftApp(),
 );
@@ -36,6 +39,7 @@ Widget buildTestApp() => MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => ThemeController()),
       ChangeNotifierProvider(create: (_) => LibraryState()),
+      ChangeNotifierProvider(create: (_) => AuthController()),
     ],
     child: MaterialApp.router(
       localizationsDelegates: const [
@@ -55,6 +59,8 @@ Widget wrapScreen(Widget screen) => MultiProvider(
   providers: [
     ChangeNotifierProvider(create: (_) => ThemeController()),
     ChangeNotifierProvider(create: (_) => LibraryState()),
+    // No api: the local-only build, which is what most tests exercise.
+    ChangeNotifierProvider(create: (_) => AuthController()),
   ],
   child: MaterialApp(
     localizationsDelegates: const [

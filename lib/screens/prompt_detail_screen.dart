@@ -15,6 +15,7 @@ import '../models/prompt_step.dart';
 import '../models/prompt_variable.dart';
 import '../models/prompt_variant.dart';
 import '../router/app_router.dart';
+import '../state/auth_controller.dart';
 import '../state/library_state.dart';
 import '../utils/date_format.dart';
 import '../utils/share_link.dart';
@@ -164,6 +165,31 @@ class _PromptDetailScreenState extends State<PromptDetailScreen> {
     return const JsonEncoder.withIndent('  ').convert(map);
   }
 
+  /// Confirms the save, then — once per run, and only if signing in could
+  /// actually do something — offers sync as an action on the same snackbar.
+  /// Saving already worked; this is an offer, never a gate.
+  void _confirmSaved(String folderName, AppStrings strings) {
+    final auth = context.read<AuthController>();
+    final offerSync = auth.shouldOfferSync();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          offerSync
+              ? strings.t('auth.syncOffer')
+              : '${strings.t('detail.forkedInto')} $folderName',
+        ),
+        behavior: SnackBarBehavior.floating,
+        width: 360,
+        action: offerSync
+            ? SnackBarAction(
+                label: strings.t('auth.syncOfferAction'),
+                onPressed: () => context.push(Routes.signIn),
+              )
+            : null,
+      ),
+    );
+  }
+
   void _showForkSheet(LibraryState library, PromptVariant variant) {
     final strings = context.strings;
     showModalBottomSheet(
@@ -177,25 +203,13 @@ class _PromptDetailScreenState extends State<PromptDetailScreen> {
           library.forkToFolder(variant, folderId, values: _values);
           Navigator.of(sheetContext).pop();
           final name = library.folderById(folderId)?.name ?? '';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${strings.t('detail.forkedInto')} $name'),
-              behavior: SnackBarBehavior.floating,
-              width: 320,
-            ),
-          );
+          _confirmSaved(name, strings);
         },
         onCreate: (name, type) {
           final folder = library.createFolder(name, type);
           library.forkToFolder(variant, folder.id, values: _values);
           Navigator.of(sheetContext).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${strings.t('detail.forkedInto')} $name'),
-              behavior: SnackBarBehavior.floating,
-              width: 320,
-            ),
-          );
+          _confirmSaved(name, strings);
         },
       ),
     );

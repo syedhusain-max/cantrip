@@ -135,6 +135,25 @@ class AppStrings {
       'saved.forkOrphanedBody':
           'The prompt this copy came from is no longer in the library.',
 
+      'auth.title': 'Account',
+      'auth.signIn': 'Sign in',
+      'auth.signUp': 'Create account',
+      'auth.signOut': 'Sign out',
+      'auth.email': 'Email',
+      'auth.password': 'Password',
+      'auth.haveAccount': 'Already have an account? Sign in',
+      'auth.needAccount': 'No account yet? Create one',
+      'auth.why':
+          'An account only syncs your saved prompts across devices. Everything '
+          'here works without one.',
+      'auth.signedInAs': 'Signed in as',
+      'auth.confirmEmail':
+          'Check your email and click the link to finish creating the account.',
+      'auth.emailRequired': 'Enter your email address.',
+      'auth.passwordTooShort': 'Use at least 8 characters.',
+      'auth.syncOffer': 'Sign in to sync this across your devices',
+      'auth.syncOfferAction': 'Sign in',
+
       'settings.title': 'Settings',
       'settings.appearance': 'Appearance',
       'settings.light': 'Light',
@@ -145,9 +164,10 @@ class AppStrings {
       'settings.arabicComingSoon': 'Arabic — coming soon',
       'settings.about': 'About',
       'settings.aboutBody':
-          'A local library of tested prompts and multi-step recipes for AI creative '
-          'tools. No account needed, nothing leaves this device, and every prompt '
-          'shows when it was last verified and on which model.',
+          'A library of tested prompts and multi-step recipes for AI creative '
+          'tools. No account needed to browse or save — an account only syncs '
+          'your saved prompts across devices. Every prompt shows when it was '
+          'last verified and on which model.',
 
       'common.cancel': 'Cancel',
       'common.create': 'Create',
