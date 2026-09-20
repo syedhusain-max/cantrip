@@ -56,3 +56,8 @@ app.*.map.json
 # Working notes: architecture rationale, open product decisions, launch
 # plans. Useful to whoever is building this, not something to publish.
 CLAUDE.md
+
+# Android release signing: paths and passwords, never committed.
+android/key.properties
+*.jks
+*.keystore

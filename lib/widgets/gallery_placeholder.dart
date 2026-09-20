@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../models/gallery_asset.dart';
 
-/// Renders a gallery asset.
+/// Renders a gallery asset: the image when there is one, a labelled
+/// gradient tile when there isn't.
 ///
-/// The sample library carries no image files, so this draws a labelled
-/// gradient tile derived from the label — the layout is real before the
-/// images are, and a missing file never shows as a broken box. When [uri]
-/// is set (once assets live in storage) it renders the image instead.
+/// The fallback is not a placeholder for development — it is the permanent
+/// failure mode. A gallery image that 404s, or hasn't been shot yet, shows
+/// the same labelled tile as a prompt with no image at all, so the page
+/// never degrades into a broken box. The label and variable-set chip sit on
+/// top either way, because they are what tell a reader *which* run they are
+/// looking at.
 class GalleryPlaceholder extends StatelessWidget {
   final GalleryAsset asset;
 
@@ -37,18 +40,11 @@ class GalleryPlaceholder extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
+          _Tile(base: base, tip: tip),
           if (asset.uri != null)
-            Image.network(asset.uri!, fit: BoxFit.cover)
-          else
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [base, tip],
-                ),
-              ),
-            ),
+            // Drawn over the tile rather than instead of it, so a slow or
+            // failed load reveals the gradient underneath instead of a gap.
+            _AssetImage(asset: asset),
           Padding(
             padding: const EdgeInsets.all(11),
             child: Column(
@@ -99,6 +95,59 @@ class GalleryPlaceholder extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _Tile extends StatelessWidget {
+  final Color base;
+  final Color tip;
+
+  const _Tile({required this.base, required this.tip});
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [base, tip],
+      ),
+    ),
+  );
+}
+
+class _AssetImage extends StatelessWidget {
+  final GalleryAsset asset;
+
+  const _AssetImage({required this.asset});
+
+  @override
+  Widget build(BuildContext context) {
+    final uri = asset.uri!;
+    const fit = BoxFit.cover;
+    // An error builder that returns nothing is the point: the gradient tile
+    // is already painted underneath.
+    Widget onError(BuildContext _, Object _, StackTrace? _) =>
+        const SizedBox.shrink();
+
+    if (asset.isBundled) {
+      return Image.asset(uri, fit: fit, errorBuilder: onError);
+    }
+    return Image.network(
+      uri,
+      fit: fit,
+      errorBuilder: onError,
+      // Fades in rather than popping, and leaves the tile visible while
+      // the bytes are still arriving.
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (wasSynchronouslyLoaded) return child;
+        return AnimatedOpacity(
+          opacity: frame == null ? 0 : 1,
+          duration: const Duration(milliseconds: 220),
+          child: child,
+        );
+      },
     );
   }
 }

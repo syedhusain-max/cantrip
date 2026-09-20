@@ -1,0 +1,17 @@
+# Copy to android/key.properties and fill in. That file is gitignored:
+# a keystore password committed to a public repo is the same as no keystore.
+#
+# Generate the keystore yourself (it will ask for the passwords twice and
+# for your name and organisation):
+#
+#   keytool -genkey -v -keystore ~/cantrip-upload.jks \
+#     -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+#
+# Keep the .jks file and these passwords backed up somewhere you will still
+# have them in five years. Losing the upload key means you cannot ship an
+# update to the same Play listing — Play Signing can reset it, but only if
+# it was enrolled before you lost it.
+storeFile=/absolute/path/to/cantrip-upload.jks
+storePassword=
+keyAlias=upload
+keyPassword=
