@@ -1,10 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_strings.dart';
 import '../models/prompt_folder.dart';
 import '../router/app_router.dart';
+import '../state/entitlement_controller.dart';
+import '../state/entitlement_gate.dart';
 import '../state/library_state.dart';
 import '../widgets/tool_badge.dart';
 
@@ -13,6 +18,115 @@ class FolderScreen extends StatelessWidget {
   final String folderId;
 
   const FolderScreen({super.key, required this.folderId});
+
+  /// The folder-defaults sheet: the feature the Pro tier actually sells.
+  ///
+  /// Fields are the goal *contract* keys behind the prompts saved here, so
+  /// a brand colour set once reaches every prompt in the folder whichever
+  /// tool it targets.
+  void _editDefaults(BuildContext context, LibraryState library) {
+    final gate = EntitlementGate(
+      limits: context.read<EntitlementController>().limits,
+      library: library,
+    );
+    if (gate.checkFolderDefaults() != null) {
+      context.push(Routes.pro(because: 'folderDefaults'));
+      return;
+    }
+
+    final strings = context.strings;
+    final fields = library.defaultableFieldsFor(folderId);
+    final folder = library.folderById(folderId);
+    if (folder == null) return;
+
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          bottom: MediaQuery.viewInsetsOf(sheetContext).bottom + 20,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                strings.t('folder.defaults'),
+                style: Theme.of(sheetContext).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                strings.t('folder.defaultsHint'),
+                style: Theme.of(sheetContext).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 16),
+              if (fields.isEmpty)
+                Text(strings.t('folder.defaultsEmpty'))
+              else
+                for (final field in fields)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: TextFormField(
+                      initialValue: folder.variableDefaults[field.key] ?? '',
+                      decoration: InputDecoration(labelText: field.label),
+                      onChanged: (value) =>
+                          library.setFolderDefault(folderId, field.key, value),
+                    ),
+                  ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Exports the folder, its saved copies and their filled values.
+  ///
+  /// References the source prompts by id rather than copying their text:
+  /// the export is the user's own work, not a redistribution of the
+  /// library.
+  void _export(BuildContext context, LibraryState library) {
+    final gate = EntitlementGate(
+      limits: context.read<EntitlementController>().limits,
+      library: library,
+    );
+    if (gate.checkExport() != null) {
+      context.push(Routes.pro(because: 'export'));
+      return;
+    }
+
+    final folder = library.folderById(folderId);
+    if (folder == null) return;
+
+    final json = const JsonEncoder.withIndent('  ').convert({
+      'folder': folder.name,
+      'type': folder.type.name,
+      'defaults': folder.variableDefaults,
+      'prompts': [
+        for (final fork in folder.items)
+          {
+            'title': fork.title ?? library.sourceOf(fork)?.title,
+            'source_variant_id': fork.sourceVariantId,
+            'source_verified_on': fork.sourceVerifiedOn.toIso8601String(),
+            'values': fork.values,
+          },
+      ],
+    });
+
+    Clipboard.setData(ClipboardData(text: json));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.strings.t('folder.exported')),
+        behavior: SnackBarBehavior.floating,
+        width: 320,
+      ),
+    );
+  }
 
   void _rename(
     BuildContext context,
@@ -66,6 +180,18 @@ class FolderScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(folder.name),
+        actions: [
+          IconButton(
+            tooltip: strings.t('folder.defaults'),
+            icon: const Icon(Icons.tune),
+            onPressed: () => _editDefaults(context, library),
+          ),
+          IconButton(
+            tooltip: strings.t('folder.export'),
+            icon: const Icon(Icons.ios_share),
+            onPressed: () => _export(context, library),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(22),
           child: Padding(

@@ -81,6 +81,63 @@ class _FavouritesTab extends StatelessWidget {
   }
 }
 
+/// Shown to Pro users when a saved copy's source has broken or vanished.
+///
+/// The reassurance in the body is the important half: a saved copy is a
+/// reference plus overrides, so the user's own version is untouched by the
+/// library moving on. Without that line the banner reads as data loss.
+class _AttentionBanner extends StatelessWidget {
+  final int count;
+
+  const _AttentionBanner({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = context.strings;
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.warning_amber_rounded,
+            size: 20,
+            color: theme.colorScheme.onErrorContainer,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$count ${strings.t(count == 1 ? 'saved.needsAttentionOne' : 'saved.needsAttention')}',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.colorScheme.onErrorContainer,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  strings.t('saved.needsAttentionBody'),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onErrorContainer,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _FoldersTab extends StatelessWidget {
   const _FoldersTab();
 
@@ -201,37 +258,55 @@ class _FoldersTab extends StatelessWidget {
               icon: Icons.folder_outlined,
               message: strings.t('saved.emptyFolders'),
             )
-          : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-              itemCount: folders.length,
-              itemBuilder: (context, i) {
-                final folder = folders[i];
-                return Card(
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest,
-                      child: Icon(
-                        folder.type == FolderType.personal
-                            ? Icons.person_outline
-                            : Icons.business_outlined,
-                        size: 20,
-                      ),
+          : Column(
+              children: [
+                // Pro only: free users see this feature offered on the Pro
+                // screen instead. Showing the alert to everyone and then
+                // charging to act on it would be the worse kind of paywall.
+                if (context
+                    .watch<EntitlementController>()
+                    .limits
+                    .breakageAlerts)
+                  if (library.savedCopiesNeedingAttention.isNotEmpty)
+                    _AttentionBanner(
+                      count: library.savedCopiesNeedingAttention.length,
                     ),
-                    title: Text(folder.name),
-                    subtitle: Text(
-                      '${folder.type.label} · ${folder.items.length} ${folder.items.length == 1 ? 'prompt' : 'prompts'}',
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      tooltip: strings.t('saved.deleteFolder'),
-                      onPressed: () => _confirmDelete(context, library, folder),
-                    ),
-                    onTap: () => context.push(Routes.folder(folder.id)),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                    itemCount: folders.length,
+                    itemBuilder: (context, i) {
+                      final folder = folders[i];
+                      return Card(
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
+                            child: Icon(
+                              folder.type == FolderType.personal
+                                  ? Icons.person_outline
+                                  : Icons.business_outlined,
+                              size: 20,
+                            ),
+                          ),
+                          title: Text(folder.name),
+                          subtitle: Text(
+                            '${folder.type.label} · ${folder.items.length} ${folder.items.length == 1 ? 'prompt' : 'prompts'}',
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            tooltip: strings.t('saved.deleteFolder'),
+                            onPressed: () =>
+                                _confirmDelete(context, library, folder),
+                          ),
+                          onTap: () => context.push(Routes.folder(folder.id)),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+              ],
             ),
     );
   }

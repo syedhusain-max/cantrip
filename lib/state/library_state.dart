@@ -6,6 +6,7 @@ import '../models/fork.dart';
 import '../models/freshness.dart';
 import '../models/goal.dart';
 import '../models/prompt_folder.dart';
+import '../models/prompt_variable.dart';
 import '../models/prompt_variant.dart';
 import 'user_data_store.dart';
 
@@ -364,6 +365,29 @@ class LibraryState extends ChangeNotifier {
 
   // ------------------------------------------------------------------ folders
 
+  /// Category ids that actually have prompts behind them.
+  ///
+  /// A browse tile that leads to an empty list is worse than a missing
+  /// tile: it reads as a broken app rather than a young one. The registry
+  /// still defines every category — this only decides what to *show*, so
+  /// seeding a category later makes its tile appear with no code change.
+  Set<String> get populatedUseCaseIds => {
+    for (final item in allItems) item.goal.useCaseId,
+  };
+
+  Set<String> get populatedOutputTypeIds => {
+    for (final item in allItems) item.goal.outputTypeId,
+  };
+
+  Set<String> get populatedToolIds => {
+    for (final item in allItems)
+      if (item.variant.toolId != null) item.variant.toolId!,
+    // A recipe can cross tools, so a tool can be present only in a step.
+    for (final item in allItems)
+      for (final step in item.variant.steps)
+        if (step.toolId != null) step.toolId!,
+  };
+
   /// Every saved copy across every folder — what the saved-copy limit
   /// counts, since folders are a grouping, not a quota boundary.
   int get savedCopyCount =>
@@ -432,6 +456,67 @@ class LibraryState extends ChangeNotifier {
     final source = sourceOf(fork);
     if (source == null) return false;
     return source.freshness.verifiedOn.isAfter(fork.sourceVerifiedOn);
+  }
+
+  /// Saved copies whose source prompt has since been reported broken, or
+  /// has vanished from the library entirely.
+  ///
+  /// This is the in-app half of the "told when a prompt you saved stops
+  /// working" promise: no push notification, no server job — the library
+  /// already knows a prompt's status, and a saved copy already knows which
+  /// prompt it came from. The alert is just asking the question.
+  List<({PromptFolder folder, Fork fork, bool missing})>
+  get savedCopiesNeedingAttention => [
+    for (final folder in _folders)
+      for (final fork in folder.items)
+        if (variantById(fork.sourceVariantId) case final source?)
+          if (statusFor(source) == FreshnessStatus.broken)
+            (folder: folder, fork: fork, missing: false)
+          else
+            ...[]
+        else
+          (folder: folder, fork: fork, missing: true),
+  ];
+
+  /// Sets or clears one folder-level default.
+  ///
+  /// Keyed by the *goal contract* key, not by a tool's variable name, so a
+  /// brand colour set once applies to every prompt saved into the folder
+  /// regardless of which tool it targets. That is the whole point of the
+  /// feature and the reason the contract exists.
+  void setFolderDefault(String folderId, String contractKey, String value) {
+    final folder = folderById(folderId);
+    if (folder == null) return;
+    if (value.trim().isEmpty) {
+      folder.variableDefaults.remove(contractKey);
+    } else {
+      folder.variableDefaults[contractKey] = value.trim();
+    }
+    _persistFolders();
+    notifyListeners();
+  }
+
+  /// Contract keys worth offering as folder defaults: the ones that appear
+  /// on the goals behind prompts already saved in this folder. Offering the
+  /// whole taxonomy would be a wall of fields that mostly do nothing.
+  List<ContractField> defaultableFieldsFor(String folderId) {
+    final folder = folderById(folderId);
+    if (folder == null) return const [];
+
+    final seen = <String, ContractField>{};
+    for (final fork in folder.items) {
+      final variant = variantById(fork.sourceVariantId);
+      if (variant == null) continue;
+      final goal = _goalsById[variant.goalId];
+      if (goal == null) continue;
+      for (final field in goal.inputContract) {
+        // Only fields a variant actually binds to are useful as defaults —
+        // an unbound contract key would set a value nothing reads.
+        final isBound = variant.variables.any((v) => v.bindsTo == field.key);
+        if (isBound) seen.putIfAbsent(field.key, () => field);
+      }
+    }
+    return seen.values.toList();
   }
 
   void renameFork(String folderId, String forkId, String newTitle) {

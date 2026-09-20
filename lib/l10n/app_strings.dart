@@ -128,6 +128,21 @@ class AppStrings {
       'saved.deleteFolder': 'Delete folder',
       'saved.deleteFolderBody': 'Delete',
       'saved.removeFromFolder': 'Remove',
+      'saved.needsAttention': 'saved prompts need checking',
+      'saved.needsAttentionOne': 'saved prompt needs checking',
+      'saved.needsAttentionBody':
+          'The library version has been reported broken, or is no longer '
+          'there. Your copy still works as you saved it.',
+
+      'folder.defaults': 'Folder defaults',
+      'folder.defaultsHint':
+          'Set these once and every prompt saved into this folder fills '
+          'itself in — across tools, not just this one.',
+      'folder.defaultsEmpty':
+          'Save a prompt into this folder first; its fields show up here.',
+      'folder.export': 'Export as JSON',
+      'folder.exported': 'Folder JSON copied',
+
       'saved.folderMissing': 'That folder no longer exists.',
       'saved.valuesSaved': 'details saved',
       'saved.upstreamUpdated': 'Library version updated since you saved this',

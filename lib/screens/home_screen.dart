@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../data/taxonomy_registry.dart';
 import '../data/tool_registry.dart';
@@ -22,6 +23,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = context.strings;
+    final library = context.watch<LibraryState>();
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.t('app.name'))),
@@ -51,14 +53,15 @@ class HomeScreen extends StatelessWidget {
                       runSpacing: 8,
                       children: [
                         for (final tool in toolRegistry)
-                          InkWell(
-                            borderRadius: BorderRadius.circular(999),
-                            onTap: () => _browse(
-                              context,
-                              LibraryFilter(toolId: tool.id),
+                          if (library.populatedToolIds.contains(tool.id))
+                            InkWell(
+                              borderRadius: BorderRadius.circular(999),
+                              onTap: () => _browse(
+                                context,
+                                LibraryFilter(toolId: tool.id),
+                              ),
+                              child: ToolBadge(toolId: tool.id),
                             ),
-                            child: ToolBadge(toolId: tool.id),
-                          ),
                       ],
                     ),
                     const SizedBox(height: 30),
@@ -68,14 +71,15 @@ class HomeScreen extends StatelessWidget {
                     _TileGrid(
                       tiles: [
                         for (final t in useCases)
-                          _Tile(
-                            icon: t.icon,
-                            label: t.label,
-                            onTap: () => _browse(
-                              context,
-                              LibraryFilter(useCaseId: t.id),
+                          if (library.populatedUseCaseIds.contains(t.id))
+                            _Tile(
+                              icon: t.icon,
+                              label: t.label,
+                              onTap: () => _browse(
+                                context,
+                                LibraryFilter(useCaseId: t.id),
+                              ),
                             ),
-                          ),
                       ],
                     ),
                     const SizedBox(height: 30),
@@ -85,14 +89,15 @@ class HomeScreen extends StatelessWidget {
                     _TileGrid(
                       tiles: [
                         for (final t in outputTypes)
-                          _Tile(
-                            icon: t.icon,
-                            label: t.label,
-                            onTap: () => _browse(
-                              context,
-                              LibraryFilter(outputTypeId: t.id),
+                          if (library.populatedOutputTypeIds.contains(t.id))
+                            _Tile(
+                              icon: t.icon,
+                              label: t.label,
+                              onTap: () => _browse(
+                                context,
+                                LibraryFilter(outputTypeId: t.id),
+                              ),
                             ),
-                          ),
                       ],
                     ),
                     const SizedBox(height: 16),
