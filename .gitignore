@@ -46,3 +46,9 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Agent skills: installed tooling, not part of the app. Kept out of the
+# public repo — skills-lock.json records where they came from, so they can
+# be reinstalled without shipping their contents.
+.agents/
+.claude/
