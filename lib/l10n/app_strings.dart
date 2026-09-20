@@ -86,6 +86,7 @@ class AppStrings {
       'detail.switchToolHint': 'Same goal, rewritten for that tool. What you\'ve typed carries over.',
       'detail.variables': 'Fill in the details',
       'detail.livePreview': 'Your prompt',
+      'detail.copyLink': 'Copy link to this prompt',
       'detail.copyPrompt': 'Copy prompt',
       'detail.copyJson': 'Copy as JSON',
       'detail.steps': 'Steps',
@@ -154,6 +155,7 @@ class AppStrings {
       'common.delete': 'Delete',
       'common.rename': 'Rename',
       'common.copiedPrompt': 'Prompt copied',
+      'common.copiedLink': 'Link copied',
       'common.copiedJson': 'JSON copied',
     },
   };

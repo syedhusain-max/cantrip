@@ -17,6 +17,7 @@ import '../models/prompt_variant.dart';
 import '../router/app_router.dart';
 import '../state/library_state.dart';
 import '../utils/date_format.dart';
+import '../utils/share_link.dart';
 import '../widgets/freshness_pill.dart';
 import '../widgets/gallery_placeholder.dart';
 import '../widgets/step_card.dart';
@@ -237,6 +238,17 @@ class _PromptDetailScreenState extends State<PromptDetailScreen> {
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
+          IconButton(
+            tooltip: strings.t('detail.copyLink'),
+            icon: const Icon(Icons.link),
+            // Always the library prompt, never the saved copy: a fork is
+            // local to this device, so a link to one would open nothing on
+            // the recipient's.
+            onPressed: () => _copy(
+              shareLinkFor(Routes.prompt(variant.id)),
+              'common.copiedLink',
+            ),
+          ),
           IconButton(
             tooltip: isFavourite
                 ? strings.t('detail.unfavourite')

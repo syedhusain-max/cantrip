@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +16,7 @@ import 'package:promptcraft/models/prompt_folder.dart';
 import 'package:promptcraft/screens/prompt_detail_screen.dart';
 import 'package:promptcraft/widgets/prompt_card.dart';
 import 'package:promptcraft/state/library_state.dart';
+import 'package:promptcraft/utils/share_link.dart';
 import 'package:promptcraft/theme/theme_controller.dart';
 
 Widget buildTestApp() => MultiProvider(
@@ -373,6 +375,43 @@ void main() {
       // without the opt-in this still renders the page but the address bar
       // keeps saying /library, and there is no link to share.
       expect(router.state.uri.toString(), '/prompt/var_oa_char2');
+    });
+
+    testWidgets('the copy-link button copies a link to the library prompt', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(900, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      String? copied;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'Clipboard.setData') {
+            copied = (call.arguments as Map)['text'] as String?;
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+
+      // Opened as a saved copy, which is the case that could get this wrong.
+      await tester.pumpWidget(
+        buildAppAt('/prompt/var_hgf_soulid?folder=f1&fork=k1').app,
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.link));
+      await tester.pumpAndSettle();
+
+      // The link points at the library prompt: a fork is local to one
+      // device, so folder/fork in a shared link would open nothing.
+      expect(copied, '$shareBaseUrl/#/prompt/var_hgf_soulid');
     });
 
     testWidgets('each tab has its own URL', (tester) async {
