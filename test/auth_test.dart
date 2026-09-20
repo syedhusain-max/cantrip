@@ -6,6 +6,7 @@ import 'package:cantrip/l10n/app_strings.dart';
 import 'package:cantrip/screens/settings_screen.dart';
 import 'package:cantrip/screens/sign_in_screen.dart';
 import 'package:cantrip/state/auth_controller.dart';
+import 'package:cantrip/state/entitlement_controller.dart';
 import 'package:cantrip/theme/theme_controller.dart';
 
 class FakeAuthApi implements AuthApi {
@@ -44,6 +45,7 @@ Widget wrap(Widget screen, AuthController auth) => MultiProvider(
   providers: [
     ChangeNotifierProvider(create: (_) => ThemeController()),
     ChangeNotifierProvider.value(value: auth),
+    ChangeNotifierProvider(create: (_) => EntitlementController()),
   ],
   child: MaterialApp(
     localizationsDelegates: const [
