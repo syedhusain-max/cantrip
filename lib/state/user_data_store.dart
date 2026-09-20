@@ -19,25 +19,34 @@ class UserData {
   });
 }
 
-/// Local persistence for user data.
+/// Where user data is read from and written to.
 ///
-/// Deliberately not a backend. The library itself ships in the app bundle,
-/// so the only thing worth storing is what the user did: saved prompts,
-/// folders and their reports. Writing that to local storage takes the app
-/// from "forgets everything on restart" to genuinely reusable, with no
-/// account, no server and no cost — and it is the same shape the Supabase
-/// tables will take, so sync later is a second implementation of this
-/// interface rather than a rewrite.
+/// The library itself ships in the app bundle, so the only thing worth
+/// storing is what the user did: saved prompts, folders and their reports.
+/// [LocalUserDataStore] keeps that on the device; [SyncedUserDataStore]
+/// keeps the same shape in Supabase once the user signs in. Nothing above
+/// this interface knows which one it has.
+abstract interface class UserDataStore {
+  Future<UserData> load();
+  Future<void> saveFavourites(Set<String> ids);
+  Future<void> saveFolders(List<PromptFolder> folders);
+  Future<void> saveSignals(Map<String, bool> signals);
+  Future<void> clear();
+}
+
+/// On-device persistence, and the offline cache the synced store writes
+/// through to. No account, no server, no cost.
 ///
 /// Every read is defensive: storage can be cleared, corrupted, or written
 /// by an older version of the app, and none of that should stop it opening.
-class UserDataStore {
+class LocalUserDataStore implements UserDataStore {
   static const _favouritesKey = 'pc.favourites.v1';
   static const _foldersKey = 'pc.folders.v1';
   static const _signalsKey = 'pc.signals.v1';
 
   Future<SharedPreferences> get _prefs => SharedPreferences.getInstance();
 
+  @override
   Future<UserData> load() async {
     try {
       final prefs = await _prefs;
@@ -53,11 +62,13 @@ class UserDataStore {
     }
   }
 
+  @override
   Future<void> saveFavourites(Set<String> ids) async {
     final prefs = await _prefs;
     await prefs.setStringList(_favouritesKey, ids.toList());
   }
 
+  @override
   Future<void> saveFolders(List<PromptFolder> folders) async {
     final prefs = await _prefs;
     await prefs.setString(
@@ -66,11 +77,13 @@ class UserDataStore {
     );
   }
 
+  @override
   Future<void> saveSignals(Map<String, bool> signals) async {
     final prefs = await _prefs;
     await prefs.setString(_signalsKey, jsonEncode(signals));
   }
 
+  @override
   Future<void> clear() async {
     final prefs = await _prefs;
     await prefs.remove(_favouritesKey);
