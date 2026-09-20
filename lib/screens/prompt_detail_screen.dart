@@ -16,6 +16,8 @@ import '../models/prompt_variable.dart';
 import '../models/prompt_variant.dart';
 import '../router/app_router.dart';
 import '../state/auth_controller.dart';
+import '../state/entitlement_controller.dart';
+import '../state/entitlement_gate.dart';
 import '../state/library_state.dart';
 import '../utils/date_format.dart';
 import '../utils/share_link.dart';
@@ -192,6 +194,15 @@ class _PromptDetailScreenState extends State<PromptDetailScreen> {
 
   void _showForkSheet(LibraryState library, PromptVariant variant) {
     final strings = context.strings;
+    final gate = EntitlementGate(
+      limits: context.read<EntitlementController>().limits,
+      library: library,
+    );
+    final blocked = gate.checkNewSavedCopy();
+    if (blocked != null) {
+      context.push(Routes.pro(because: 'savedCopies'));
+      return;
+    }
     showModalBottomSheet(
       context: context,
       showDragHandle: true,
@@ -206,6 +217,11 @@ class _PromptDetailScreenState extends State<PromptDetailScreen> {
           _confirmSaved(name, strings);
         },
         onCreate: (name, type) {
+          if (gate.checkNewFolder() != null) {
+            Navigator.of(sheetContext).pop();
+            context.push(Routes.pro(because: 'folders'));
+            return;
+          }
           final folder = library.createFolder(name, type);
           library.forkToFolder(variant, folder.id, values: _values);
           Navigator.of(sheetContext).pop();

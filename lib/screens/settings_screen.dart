@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../l10n/app_strings.dart';
 import '../router/app_router.dart';
 import '../state/auth_controller.dart';
+import '../state/entitlement_controller.dart';
 import '../theme/theme_controller.dart';
 
 /// The Settings tab: theme mode and a language section (English only for
@@ -18,6 +19,7 @@ class SettingsScreen extends StatelessWidget {
     final strings = context.strings;
     final themeController = context.watch<ThemeController>();
     final auth = context.watch<AuthController>();
+    final entitlements = context.watch<EntitlementController>();
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.t('settings.title'))),
@@ -33,6 +35,37 @@ class SettingsScreen extends StatelessWidget {
                 child: ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
+                    _SectionCard(
+                      title: strings.t('pro.title'),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            strings.t('pro.pitch'),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 12),
+                          if (entitlements.isPro)
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.check_circle,
+                                  size: 18,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(strings.t('pro.title')),
+                              ],
+                            )
+                          else
+                            FilledButton.tonal(
+                              onPressed: () => context.push(Routes.pro()),
+                              child: Text(strings.t('pro.title')),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     // Hidden entirely when the build has no backend: an
                     // account section that can't work is worse than none.
                     if (auth.isAvailable) ...[

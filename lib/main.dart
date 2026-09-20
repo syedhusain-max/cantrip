@@ -5,9 +5,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
 import 'state/auth_controller.dart';
 import 'state/backend_config.dart';
+import 'state/entitlement_controller.dart';
 import 'state/library_state.dart';
 import 'state/remote_user_data_api.dart';
 import 'state/supabase_auth_api.dart';
+import 'state/supabase_entitlement_api.dart';
 import 'state/synced_user_data_store.dart';
 import 'state/user_data_store.dart';
 import 'theme/theme_controller.dart';
@@ -28,10 +30,19 @@ Future<void> main() async {
   final library = LibraryState(store: store);
   final theme = ThemeController();
 
+  final entitlements = EntitlementController(
+    api: backend == null ? null : SupabaseEntitlementApi(backend),
+  );
+  entitlements.refresh();
+
   final auth = AuthController(
     api: backend == null ? null : SupabaseAuthApi(backend),
-    // Signing in changes what the store returns, so the library re-reads.
-    onSignedIn: library.load,
+    // Signing in changes what the store returns, so the library re-reads —
+    // and the tier belongs to the account, so it is re-read too.
+    onSignedIn: () async {
+      await library.load();
+      await entitlements.refresh();
+    },
     // Signing out wipes the device copy, then re-reads into an empty state.
     // The data is safe on the server; leaving it here would hand one
     // account's folders to whoever signs in next, because the first-sign-in
@@ -39,6 +50,7 @@ Future<void> main() async {
     onSignedOut: () async {
       await local.clear();
       await library.load();
+      await entitlements.refresh();
     },
   );
 
@@ -54,6 +66,7 @@ Future<void> main() async {
         ChangeNotifierProvider.value(value: theme),
         ChangeNotifierProvider.value(value: library),
         ChangeNotifierProvider.value(value: auth),
+        ChangeNotifierProvider.value(value: entitlements),
       ],
       child: const CantripApp(),
     ),

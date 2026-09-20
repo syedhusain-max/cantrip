@@ -364,6 +364,11 @@ class LibraryState extends ChangeNotifier {
 
   // ------------------------------------------------------------------ folders
 
+  /// Every saved copy across every folder — what the saved-copy limit
+  /// counts, since folders are a grouping, not a quota boundary.
+  int get savedCopyCount =>
+      _folders.fold(0, (total, folder) => total + folder.items.length);
+
   PromptFolder createFolder(String name, FolderType type) {
     final folder = PromptFolder(
       id: 'folder-${DateTime.now().microsecondsSinceEpoch}',

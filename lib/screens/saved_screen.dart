@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../l10n/app_strings.dart';
 import '../models/prompt_folder.dart';
 import '../router/app_router.dart';
+import '../state/entitlement_controller.dart';
+import '../state/entitlement_gate.dart';
 import '../state/library_state.dart';
 import '../widgets/prompt_card.dart';
 
@@ -84,6 +86,17 @@ class _FoldersTab extends StatelessWidget {
 
   void _createFolder(BuildContext context, LibraryState library) {
     final strings = context.strings;
+    // Checked before the dialog opens: letting someone name a folder and
+    // then refusing it is worse than saying so up front.
+    final gate = EntitlementGate(
+      limits: context.read<EntitlementController>().limits,
+      library: library,
+    );
+    final blocked = gate.checkNewFolder();
+    if (blocked != null) {
+      context.push(Routes.pro(because: 'folders'));
+      return;
+    }
     final controller = TextEditingController();
     var type = FolderType.personal;
 

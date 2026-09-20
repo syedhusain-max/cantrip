@@ -154,6 +154,31 @@ class AppStrings {
       'auth.syncOffer': 'Sign in to sync this across your devices',
       'auth.syncOfferAction': 'Sign in',
 
+      'pro.title': 'Cantrip Pro',
+      'pro.pitch':
+          'The library is free, always. Pro is for using it on client work.',
+      'pro.limitFolders':
+          'Free keeps one folder. Pro gives you a folder per client, synced '
+          'across your devices.',
+      'pro.limitSavedCopies':
+          'Free keeps 10 saved copies. Pro keeps as many as you need, each '
+          'remembering what you typed.',
+      'pro.limitFolderDefaults':
+          'Set a client\'s brand once on the folder and every prompt saved '
+          'into it fills itself in. That one is Pro.',
+      'pro.limitExport': 'Exporting a folder as JSON is a Pro feature.',
+      'pro.featureFolders': 'A folder per client, not just one',
+      'pro.featureSavedCopies': 'Unlimited saved copies, with your values',
+      'pro.featureDefaults': 'Folder defaults — set a brand once, reuse it',
+      'pro.featureAlerts': 'Told when a prompt you saved stops working',
+      'pro.featureEarly': 'Newly verified prompts on day one, not day 14',
+      'pro.featureExport': 'Export a folder as JSON',
+      'pro.comingSoon': 'Subscriptions open soon',
+      'pro.comingSoonBody':
+          'Pro isn\'t on sale yet. Nothing you save now is lost when it is — '
+          'your folders and copies stay exactly where they are.',
+      'pro.notNow': 'Not now',
+
       'settings.title': 'Settings',
       'settings.appearance': 'Appearance',
       'settings.light': 'Light',

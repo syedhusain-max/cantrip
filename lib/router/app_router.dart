@@ -5,11 +5,13 @@ import '../screens/create_screen.dart';
 import '../screens/folder_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/library_screen.dart';
+import '../screens/pro_screen.dart';
 import '../screens/prompt_detail_screen.dart';
 import '../screens/recipe_runner_screen.dart';
 import '../screens/saved_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/sign_in_screen.dart';
+import '../models/entitlement.dart';
 import '../state/library_state.dart';
 import '../widgets/root_shell.dart';
 
@@ -32,6 +34,11 @@ abstract final class Routes {
   static String folder(String folderId) => '/folder/$folderId';
 
   static const signIn = '/sign-in';
+
+  /// The limit that triggered it rides in the query string, so the paywall
+  /// can answer the question the user just asked.
+  static String pro({String? because}) =>
+      because == null ? '/pro' : '/pro?limit=$because';
 
   static String libraryWith(LibraryFilter filter) => Uri(
     path: library,
@@ -144,6 +151,19 @@ GoRouter createRouter({String initialLocation = Routes.home}) {
             ),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/pro',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => ProScreen(
+          hit: switch (state.uri.queryParameters['limit']) {
+            'folders' => LimitHit.folders,
+            'savedCopies' => LimitHit.savedCopies,
+            'folderDefaults' => LimitHit.folderDefaults,
+            'export' => LimitHit.export,
+            _ => null,
+          },
+        ),
       ),
       GoRoute(
         path: Routes.signIn,
