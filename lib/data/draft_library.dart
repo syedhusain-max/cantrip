@@ -404,11 +404,31 @@ final List<DraftVariant> draftVariants = [
         'the-ultimate-guide-to-ai-presentation-prompts-how-to-get-better-'
         'slides-from-gamma',
     researchedOn: DateTime(2026, 9, 20),
+    // RUN 1 OBSERVED 2026-09-20, Gamma 3 via API, 39 credits, 8 cards.
+    // Three instructions in the original prompt did not survive contact,
+    // which is the whole reason this file exists:
+    //
+    // 1. "Lead with the recommendation" was ignored outright. Gamma imposed
+    //    its own arc — problem, evidence, recommendation — and put the
+    //    recommendation on the LAST card. Reordering has to happen in the
+    //    follow-up step; it cannot be asked for up front.
+    // 2. "Do not invent figures" did not prevent a wrong one. The notes say
+    //    the renewal is up 30%; the deck's headline read "We're Paying 40%
+    //    More". A contradicted figure in a headline is worse than an
+    //    invented one in a body, because nobody re-reads headlines.
+    // 3. The cost chart asserted in-house = $0 annual cost, which the notes
+    //    never claimed. Six weeks of two engineers is not zero, and that
+    //    slide is the one a COO would attack first.
+    //
+    // The 30-word cap was treated as guidance, not a rule: two cards ran
+    // to roughly 35-45 words.
     toVerify: [
+      'RE-RUN after the prompt fix below: does moving the recommendation '
+          'into the follow-up step actually put it first?',
+      'Does "quote figures exactly" stop the headline contradiction, or '
+          'does it need the numbers listed explicitly as a whitelist?',
       'Confirm the free tier still caps generation at 10 cards — the pitch '
           'depends on it and tiers change.',
-      'Does the refinement command actually reorder, or silently rewrite? '
-          'Run "Reorder to problem, insight, recommendation, next steps".',
       'Try it with genuinely messy notes, not a tidy outline. Tidy input '
           'proves nothing about the prompt.',
     ],
@@ -480,10 +500,13 @@ final List<DraftVariant> draftVariants = [
         prompt:
             'Build a {{slide_count}}-slide deck arguing: {{topic}}.\n'
             'Audience: {{audience}}. Tone: {{tone}}.\n'
-            'One idea per slide. Lead with the recommendation, then the '
-            'evidence, then what happens next. No slide with more than 30 '
-            'words of body text.\n\n'
-            'Work only from these notes — do not invent figures:\n'
+            'One idea per slide, and keep body text near 30 words.\n\n'
+            'Every number, percentage and figure must be quoted exactly as '
+            'written in the notes below. Do not restate a figure in a '
+            'headline in different terms. Do not compute savings, totals or '
+            'comparisons the notes do not state. If a cost is unknown, say '
+            'unknown rather than showing zero.\n\n'
+            'Use only these notes:\n'
             '{{source_notes}}',
         settings: {'num_cards': '{{slide_count}}', 'tone': '{{tone}}'},
         produces: StepOutput(
@@ -496,8 +519,14 @@ final List<DraftVariant> draftVariants = [
         guardrails: [
           'Thin prompts produce generic decks. If the notes are one line, '
               'the deck will read like anyone\'s.',
-          '"Do not invent figures" matters: without it, plausible numbers '
-              'appear that you will have to defend in the room.',
+          'Observed: "do not invent figures" alone is not enough. A 30% '
+              'increase came back as a "40% More" headline, and a cost '
+              'chart asserted the in-house option costs zero — a figure the '
+              'notes never gave. Check every number against your notes '
+              'before this deck leaves the room.',
+          'Observed: asking for the recommendation first does not work. '
+              'Gamma imposes problem, evidence, recommendation. Move it '
+              'with the reorder step rather than asking up front.',
         ],
         estMinutes: 2,
       ),
@@ -507,8 +536,9 @@ final List<DraftVariant> draftVariants = [
         toolId: 'gamma',
         actionType: StepActionType.prompt,
         prompt:
-            'Reorder the deck to follow: problem, insight, recommendation, '
-            'next steps. Then flag any slide that is too dense and split it.',
+            'Move the recommendation to the second card, immediately after '
+            'the title. Then order the rest: evidence, risk of inaction, '
+            'next steps. Flag any card over 30 words and split it.',
         inputs: [StepInput.fromStep('draft_deck', label: 'The draft deck')],
         produces: StepOutput(
           id: 'tightened_deck',
