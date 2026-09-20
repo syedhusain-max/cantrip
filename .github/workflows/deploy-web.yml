@@ -1,0 +1,80 @@
+# Builds the web app and publishes it to GitHub Pages on every push to main.
+#
+# Pages serves the site from a sub-directory (/<repo>/), which is why the
+# build passes --base-href: without it every asset request would go to the
+# domain root and 404. The app's URLs use go_router's hash strategy, so no
+# rewrite rules are needed — Pages serves index.html and the app reads the
+# fragment itself.
+name: Deploy web
+
+on:
+  push:
+    branches: [main]
+  # Lets you redeploy from the Actions tab without pushing a commit.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race; the newer one wins.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          # Pinned to the version the app is developed against. Bump it
+          # deliberately, together with a local `flutter upgrade`.
+          flutter-version: 3.47.4
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      # The same two gates that must pass locally.
+      - run: flutter analyze
+      - run: flutter test
+
+      - name: Build web
+        env:
+          # Repository secrets. With them unset the build still succeeds and
+          # ships a local-only app: no account section, no sync. That is a
+          # deliberate property of BackendConfig, not an oversight here.
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          repo="${GITHUB_REPOSITORY#*/}"
+          owner="${GITHUB_REPOSITORY%%/*}"
+          flutter build web --release \
+            --base-href "/$repo/" \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY" \
+            --dart-define=SHARE_BASE_URL="https://${owner,,}.github.io/$repo"
+
+      # Pages has no server-side routing, so a visitor who reloads a deep
+      # link would get GitHub's 404 page. Serving the app as 404.html too
+      # means any unknown path still boots the app, which then reads the
+      # hash and lands on the right screen.
+      - run: cp build/web/index.html build/web/404.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
