@@ -52,3 +52,7 @@ app.*.map.json
 # be reinstalled without shipping their contents.
 .agents/
 .claude/
+
+# Working notes: architecture rationale, open product decisions, launch
+# plans. Useful to whoever is building this, not something to publish.
+CLAUDE.md
