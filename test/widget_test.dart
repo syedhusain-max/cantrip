@@ -3,14 +3,17 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'package:promptcraft/app.dart';
+import 'package:promptcraft/router/app_router.dart';
 import 'package:promptcraft/l10n/app_strings.dart';
 import 'package:promptcraft/models/fork.dart';
 import 'package:promptcraft/models/freshness.dart';
 import 'package:promptcraft/models/prompt_folder.dart';
 import 'package:promptcraft/screens/prompt_detail_screen.dart';
+import 'package:promptcraft/widgets/prompt_card.dart';
 import 'package:promptcraft/state/library_state.dart';
 import 'package:promptcraft/theme/theme_controller.dart';
 
@@ -21,6 +24,30 @@ Widget buildTestApp() => MultiProvider(
   ],
   child: const PromptCraftApp(),
 );
+
+/// Builds the real router at [location], which is how a shared link or a
+/// browser address-bar entry arrives. Returns the router too, so a test can
+/// assert on where navigation actually left the user.
+({Widget app, GoRouter router}) buildAppAt(String location) {
+  final router = createRouter(initialLocation: location);
+  final app = MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => ThemeController()),
+      ChangeNotifierProvider(create: (_) => LibraryState()),
+    ],
+    child: MaterialApp.router(
+      localizationsDelegates: const [
+        AppStrings.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('en')],
+      routerConfig: router,
+    ),
+  );
+  return (app: app, router: router);
+}
 
 Widget wrapScreen(Widget screen) => MultiProvider(
   providers: [
@@ -278,6 +305,81 @@ void main() {
         createdAt: DateTime(2026, 1, 1),
       );
       expect(library.hasUpstreamUpdate(stale), isTrue);
+    });
+  });
+
+  group('routing', () {
+    test('a filter survives the round trip through a URL', () {
+      const filter = LibraryFilter(
+        search: 'avatar',
+        toolId: 'openart',
+        outputTypeId: 'image',
+      );
+
+      final restored = LibraryFilter.fromQueryParameters(
+        Uri.parse(Routes.libraryWith(filter)).queryParameters,
+      );
+
+      expect(restored, filter);
+      // Unset axes stay out of the URL rather than showing up as empties.
+      expect(filter.toQueryParameters().containsKey('niche'), isFalse);
+    });
+
+    testWidgets('a prompt link opens that prompt directly', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(900, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildAppAt('/prompt/var_hgf_soulid').app);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('A consistent AI avatar I can reuse across scenes'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a filtered library link lands filtered and titled', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(900, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildAppAt('/library?tool=openart').app);
+      await tester.pumpAndSettle();
+
+      // The single active axis names the page.
+      expect(find.widgetWithText(AppBar, 'OpenArt'), findsOneWidget);
+
+      final library = LibraryState();
+      final expected = library.filtered(const LibraryFilter(toolId: 'openart'));
+      expect(expected, isNotEmpty);
+      expect(find.byType(PromptCard), findsNWidgets(expected.length));
+    });
+
+    testWidgets('opening a prompt puts it in the URL, so it can be copied', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(900, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final (:app, :router) = buildAppAt('/library?tool=openart');
+      await tester.pumpWidget(app);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(PromptCard).first);
+      await tester.pumpAndSettle();
+
+      // go_router hides imperative pushes from the URL unless we opt in;
+      // without the opt-in this still renders the page but the address bar
+      // keeps saying /library, and there is no link to share.
+      expect(router.state.uri.toString(), '/prompt/var_oa_char2');
+    });
+
+    testWidgets('each tab has its own URL', (tester) async {
+      await tester.pumpWidget(buildAppAt('/saved').app);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Saved'), findsWidgets);
     });
   });
 

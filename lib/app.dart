@@ -3,17 +3,26 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'l10n/app_strings.dart';
+import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
-import 'widgets/root_shell.dart';
 
-class PromptCraftApp extends StatelessWidget {
+class PromptCraftApp extends StatefulWidget {
   const PromptCraftApp({super.key});
+
+  @override
+  State<PromptCraftApp> createState() => _PromptCraftAppState();
+}
+
+class _PromptCraftAppState extends State<PromptCraftApp> {
+  // Built once: recreating the router on rebuild would reset navigation
+  // state on every theme change.
+  late final _router = createRouter();
 
   @override
   Widget build(BuildContext context) {
     final themeController = context.watch<ThemeController>();
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'PromptCraft',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
@@ -28,7 +37,7 @@ class PromptCraftApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const RootShell(),
+      routerConfig: _router,
     );
   }
 }

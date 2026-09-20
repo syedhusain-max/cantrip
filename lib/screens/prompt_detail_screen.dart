@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -13,6 +14,7 @@ import '../models/prompt_folder.dart';
 import '../models/prompt_step.dart';
 import '../models/prompt_variable.dart';
 import '../models/prompt_variant.dart';
+import '../router/app_router.dart';
 import '../state/library_state.dart';
 import '../utils/date_format.dart';
 import '../widgets/freshness_pill.dart';
@@ -20,7 +22,6 @@ import '../widgets/gallery_placeholder.dart';
 import '../widgets/step_card.dart';
 import '../widgets/tool_badge.dart';
 import '../widgets/variable_field.dart';
-import 'recipe_runner_screen.dart';
 
 /// The detail view: proof, freshness, fillable variables, live preview, and
 /// the tool switcher that keeps the goal while swapping the prompt.
@@ -253,11 +254,9 @@ class _PromptDetailScreenState extends State<PromptDetailScreen> {
       ),
       floatingActionButton: variant.isRecipe
           ? FloatingActionButton.extended(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) =>
-                      RecipeRunnerScreen(variant: variant, values: _values),
-                ),
+              onPressed: () => context.push(
+                Routes.recipe(variant.id),
+                extra: Map<String, String>.from(_values),
               ),
               icon: const Icon(Icons.play_arrow),
               label: Text(strings.t('detail.runRecipe')),

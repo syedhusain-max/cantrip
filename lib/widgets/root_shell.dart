@@ -1,38 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../l10n/app_strings.dart';
-import '../screens/create_screen.dart';
-import '../screens/home_screen.dart';
-import '../screens/library_screen.dart';
-import '../screens/saved_screen.dart';
-import '../screens/settings_screen.dart';
-import 'root_shell_scope.dart';
 
 /// The app's root navigation shell: a bottom [NavigationBar] on narrow
 /// (phone) layouts and a side [NavigationRail] on wide (tablet/desktop)
 /// layouts, both driving the same five tabs.
-class RootShell extends StatefulWidget {
-  const RootShell({super.key});
+///
+/// The tabs themselves are branches of the router's [StatefulShellRoute],
+/// so each keeps its own navigation stack and every tab has a URL.
+class RootShell extends StatelessWidget {
+  final StatefulNavigationShell navigationShell;
+
+  const RootShell({super.key, required this.navigationShell});
 
   static const _wideBreakpoint = 840.0;
 
-  @override
-  State<RootShell> createState() => _RootShellState();
-}
+  /// Re-tapping the current tab pops it back to its root, which is what a
+  /// bottom bar is expected to do.
+  void _select(int index) => navigationShell.goBranch(
+    index,
+    initialLocation: index == navigationShell.currentIndex,
+  );
 
-class _RootShellState extends State<RootShell> {
-  int _index = 0;
-
-  late final _tabs = [
-    const HomeScreen(),
-    const LibraryScreen(),
-    const CreateScreen(),
-    const SavedScreen(),
-    const SettingsScreen(),
-  ];
-
-  List<({IconData icon, IconData selectedIcon, String labelKey})>
-  get _destinations => const [
+  static const List<({IconData icon, IconData selectedIcon, String labelKey})>
+  _destinations = [
     (icon: Icons.home_outlined, selectedIcon: Icons.home, labelKey: 'nav.home'),
     (
       icon: Icons.auto_stories_outlined,
@@ -59,20 +51,16 @@ class _RootShellState extends State<RootShell> {
   @override
   Widget build(BuildContext context) {
     final strings = context.strings;
-    final isWide =
-        MediaQuery.sizeOf(context).width >= RootShell._wideBreakpoint;
-    final body = RootShellScope(
-      goToCreate: () => setState(() => _index = 2),
-      child: IndexedStack(index: _index, children: _tabs),
-    );
+    final isWide = MediaQuery.sizeOf(context).width >= _wideBreakpoint;
+    final index = navigationShell.currentIndex;
 
     if (isWide) {
       return Scaffold(
         body: Row(
           children: [
             NavigationRail(
-              selectedIndex: _index,
-              onDestinationSelected: (i) => setState(() => _index = i),
+              selectedIndex: index,
+              onDestinationSelected: _select,
               labelType: NavigationRailLabelType.all,
               leading: const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
@@ -88,17 +76,17 @@ class _RootShellState extends State<RootShell> {
               ],
             ),
             const VerticalDivider(width: 1),
-            Expanded(child: body),
+            Expanded(child: navigationShell),
           ],
         ),
       );
     }
 
     return Scaffold(
-      body: body,
+      body: navigationShell,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
+        selectedIndex: index,
+        onDestinationSelected: _select,
         destinations: [
           for (final d in _destinations)
             NavigationDestination(

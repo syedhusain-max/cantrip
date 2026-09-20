@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../l10n/app_strings.dart';
-import '../models/prompt_variant.dart';
+import '../state/library_state.dart';
 import '../widgets/step_card.dart';
 
 /// Walks a multi-step recipe one step at a time.
@@ -13,12 +15,15 @@ import '../widgets/step_card.dart';
 /// for what it produced, and the next step shows it — the carry-forward is
 /// visible rather than something the user has to hold in their head.
 class RecipeRunnerScreen extends StatefulWidget {
-  final PromptVariant variant;
+  final String variantId;
+
+  /// What the user already filled in on the detail screen. Empty when the
+  /// runner is reached by a cold link, in which case steps show raw tokens.
   final Map<String, String> values;
 
   const RecipeRunnerScreen({
     super.key,
-    required this.variant,
+    required this.variantId,
     required this.values,
   });
 
@@ -49,7 +54,14 @@ class _RecipeRunnerScreenState extends State<RecipeRunnerScreen> {
   Widget build(BuildContext context) {
     final strings = context.strings;
     final theme = Theme.of(context);
-    final steps = widget.variant.steps;
+    final variant = context.watch<LibraryState>().variantById(widget.variantId);
+    if (variant == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(strings.t('runner.title'))),
+        body: Center(child: Text(strings.t('detail.missing'))),
+      );
+    }
+    final steps = variant.steps;
     final step = steps[_current];
     final isLast = _current == steps.length - 1;
 
@@ -141,7 +153,7 @@ class _RecipeRunnerScreenState extends State<RecipeRunnerScreen> {
 
                     StepCard(
                       step: step,
-                      variant: widget.variant,
+                      variant: variant,
                       values: widget.values,
                       onCopy: _copy,
                     ),
@@ -187,7 +199,7 @@ class _RecipeRunnerScreenState extends State<RecipeRunnerScreen> {
                           onPressed: () {
                             setState(() => _done.add(_current));
                             if (isLast) {
-                              Navigator.of(context).pop();
+                              context.pop();
                             } else {
                               setState(() => _current += 1);
                             }

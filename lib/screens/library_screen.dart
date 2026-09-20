@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../data/taxonomy_registry.dart';
+import '../data/tool_registry.dart';
 import '../l10n/app_strings.dart';
+import '../router/app_router.dart';
 import '../state/library_state.dart';
 import '../widgets/filter_sheet.dart';
 import '../widgets/prompt_card.dart';
-import 'prompt_detail_screen.dart';
 
-/// Search, filter and browse the library. Used as the Library tab and
-/// pushed with an [initialFilter] from Home's browse shortcuts.
+/// Search, filter and browse the library.
+///
+/// The filter lives in the URL (`/library?tool=higgsfield`), which is what
+/// makes a filtered view shareable and lets Home's browse shortcuts be
+/// plain links. Changes made in the screen rewrite that URL with
+/// [GoRouter.replace] rather than push, so filtering doesn't bury the
+/// previous page under a stack of back-button steps.
 class LibraryScreen extends StatefulWidget {
   final LibraryFilter initialFilter;
-  final String? title;
 
-  const LibraryScreen({
-    super.key,
-    this.initialFilter = const LibraryFilter(),
-    this.title,
-  });
+  const LibraryScreen({super.key, this.initialFilter = const LibraryFilter()});
 
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
@@ -30,9 +33,43 @@ class _LibraryScreenState extends State<LibraryScreen> {
   );
 
   @override
+  void didUpdateWidget(LibraryScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Arriving from a link (or a Home shortcut) while this tab is already
+    // built: adopt the incoming filter instead of keeping the stale one.
+    if (widget.initialFilter != oldWidget.initialFilter &&
+        widget.initialFilter != _filter) {
+      _filter = widget.initialFilter;
+      _searchController.text = _filter.search;
+    }
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _apply(LibraryFilter filter) {
+    setState(() => _filter = filter);
+    context.replace(Routes.libraryWith(filter));
+  }
+
+  /// A single-axis filter names itself in the app bar (the Home shortcuts
+  /// all arrive this way); anything else falls back to the generic title.
+  String _title(AppStrings strings) {
+    if (_filter.search.isEmpty && _filter.activeCount == 1) {
+      final label = switch (_filter) {
+        LibraryFilter(:final toolId?) => toolName(toolId),
+        LibraryFilter(:final useCaseId?) => useCaseLabel(useCaseId),
+        LibraryFilter(:final nicheId?) => nicheLabel(nicheId),
+        LibraryFilter(:final outputTypeId?) => outputTypeLabel(outputTypeId),
+        LibraryFilter(:final inputMethodId?) => inputMethodLabel(inputMethodId),
+        _ => null,
+      };
+      if (label != null) return label;
+    }
+    return strings.t('library.title');
   }
 
   @override
@@ -42,7 +79,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     final results = library.filtered(_filter);
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title ?? strings.t('library.title'))),
+      appBar: AppBar(title: Text(_title(strings))),
       body: SafeArea(
         child: Column(
           children: [
@@ -58,8 +95,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         prefixIcon: const Icon(Icons.search),
                         isDense: true,
                       ),
-                      onChanged: (v) =>
-                          setState(() => _filter = _filter.copyWith(search: v)),
+                      onChanged: (v) => _apply(_filter.copyWith(search: v)),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -69,11 +105,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     child: IconButton.filledTonal(
                       icon: const Icon(Icons.tune),
                       tooltip: strings.t('library.filters'),
-                      onPressed: () => FilterSheet.show(
-                        context,
-                        _filter,
-                        (f) => setState(() => _filter = f),
-                      ),
+                      onPressed: () =>
+                          FilterSheet.show(context, _filter, _apply),
                     ),
                   ),
                 ],
@@ -92,10 +125,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   const Spacer(),
                   if (!_filter.isEmpty)
                     TextButton(
-                      onPressed: () => setState(() {
-                        _filter = const LibraryFilter();
+                      onPressed: () {
                         _searchController.clear();
-                      }),
+                        _apply(const LibraryFilter());
+                      },
                       child: Text(strings.t('library.clearFilters')),
                     ),
                 ],
@@ -139,13 +172,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                               isFavourite: library.isFavourite(item.variant.id),
                               onToggleFavourite: () =>
                                   library.toggleFavourite(item.variant.id),
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => PromptDetailScreen(
-                                    variantId: item.variant.id,
-                                  ),
-                                ),
-                              ),
+                              onTap: () =>
+                                  context.push(Routes.prompt(item.variant.id)),
                             );
                           },
                         );

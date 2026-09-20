@@ -1,31 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../data/taxonomy_registry.dart';
 import '../data/tool_registry.dart';
 import '../l10n/app_strings.dart';
+import '../router/app_router.dart';
 import '../state/library_state.dart';
-import '../widgets/root_shell_scope.dart';
 import '../widgets/section_header.dart';
 import '../widgets/tool_badge.dart';
-import 'library_screen.dart';
 
 /// The Home tab: the guided-flow entry point, plus browse shortcuts into
 /// the library along three of the five axes.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  void _browse(BuildContext context, LibraryFilter filter, String title) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => LibraryScreen(initialFilter: filter, title: title),
-      ),
-    );
-  }
+  /// Browse shortcuts switch to the Library tab with the filter in the URL,
+  /// so the filtered view is linkable and the tab bar stays put.
+  void _browse(BuildContext context, LibraryFilter filter) =>
+      context.go(Routes.libraryWith(filter));
 
   @override
   Widget build(BuildContext context) {
     final strings = context.strings;
-    final shell = RootShellScope.of(context);
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.t('app.name'))),
@@ -41,17 +37,13 @@ class HomeScreen extends StatelessWidget {
                 child: ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
-                    _GuidedFlowCard(onStart: () => shell?.goToCreate()),
+                    _GuidedFlowCard(onStart: () => context.go(Routes.create)),
                     const SizedBox(height: 30),
 
                     SectionHeader(
                       title: strings.t('home.browseByTool'),
                       actionLabel: strings.t('home.viewAll'),
-                      onAction: () => _browse(
-                        context,
-                        const LibraryFilter(),
-                        strings.t('library.title'),
-                      ),
+                      onAction: () => _browse(context, const LibraryFilter()),
                     ),
                     const SizedBox(height: 12),
                     Wrap(
@@ -64,7 +56,6 @@ class HomeScreen extends StatelessWidget {
                             onTap: () => _browse(
                               context,
                               LibraryFilter(toolId: tool.id),
-                              tool.name,
                             ),
                             child: ToolBadge(toolId: tool.id),
                           ),
@@ -83,7 +74,6 @@ class HomeScreen extends StatelessWidget {
                             onTap: () => _browse(
                               context,
                               LibraryFilter(useCaseId: t.id),
-                              t.label,
                             ),
                           ),
                       ],
@@ -101,7 +91,6 @@ class HomeScreen extends StatelessWidget {
                             onTap: () => _browse(
                               context,
                               LibraryFilter(outputTypeId: t.id),
-                              t.label,
                             ),
                           ),
                       ],

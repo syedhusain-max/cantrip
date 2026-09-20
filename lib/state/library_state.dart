@@ -43,6 +43,49 @@ class LibraryFilter {
     inputMethodId,
   ].where((v) => v != null).length;
 
+  /// Query-string form, so a filtered library view is a shareable URL.
+  /// Only non-empty axes are emitted, keeping `/library` clean when nothing
+  /// is set.
+  Map<String, String> toQueryParameters() => {
+    if (search.isNotEmpty) 'q': search,
+    'tool': ?toolId,
+    'useCase': ?useCaseId,
+    'niche': ?nicheId,
+    'output': ?outputTypeId,
+    'input': ?inputMethodId,
+  };
+
+  factory LibraryFilter.fromQueryParameters(Map<String, String> params) {
+    return LibraryFilter(
+      search: params['q'] ?? '',
+      toolId: params['tool'],
+      useCaseId: params['useCase'],
+      nicheId: params['niche'],
+      outputTypeId: params['output'],
+      inputMethodId: params['input'],
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is LibraryFilter &&
+      other.search == search &&
+      other.toolId == toolId &&
+      other.useCaseId == useCaseId &&
+      other.outputTypeId == outputTypeId &&
+      other.nicheId == nicheId &&
+      other.inputMethodId == inputMethodId;
+
+  @override
+  int get hashCode => Object.hash(
+    search,
+    toolId,
+    useCaseId,
+    nicheId,
+    outputTypeId,
+    inputMethodId,
+  );
+
   LibraryFilter copyWith({
     String? search,
     String? toolId,

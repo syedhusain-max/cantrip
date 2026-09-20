@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_strings.dart';
 import '../models/prompt_folder.dart';
+import '../router/app_router.dart';
 import '../state/library_state.dart';
 import '../widgets/tool_badge.dart';
-import 'prompt_detail_screen.dart';
 
 /// The saved prompts inside one folder.
 class FolderScreen extends StatelessWidget {
@@ -185,14 +186,8 @@ class FolderScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => PromptDetailScreen(
-                          variantId: source.id,
-                          folderId: folderId,
-                          forkId: fork.id,
-                        ),
-                      ),
+                    onTap: () => context.push(
+                      Routes.savedCopy(source.id, folderId, fork.id),
                     ),
                     trailing: PopupMenuButton<String>(
                       onSelected: (action) {

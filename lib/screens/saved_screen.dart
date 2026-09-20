@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_strings.dart';
 import '../models/prompt_folder.dart';
+import '../router/app_router.dart';
 import '../state/library_state.dart';
 import '../widgets/prompt_card.dart';
-import 'folder_screen.dart';
-import 'prompt_detail_screen.dart';
 
 /// Favourited prompts, and folders holding forked editable copies.
 class SavedScreen extends StatelessWidget {
@@ -70,12 +70,7 @@ class _FavouritesTab extends StatelessWidget {
               worksCount: library.signalsFor(item.variant).works,
               isFavourite: true,
               onToggleFavourite: () => library.toggleFavourite(item.variant.id),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) =>
-                      PromptDetailScreen(variantId: item.variant.id),
-                ),
-              ),
+              onTap: () => context.push(Routes.prompt(item.variant.id)),
             );
           },
         );
@@ -220,11 +215,7 @@ class _FoldersTab extends StatelessWidget {
                       tooltip: strings.t('saved.deleteFolder'),
                       onPressed: () => _confirmDelete(context, library, folder),
                     ),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => FolderScreen(folderId: folder.id),
-                      ),
-                    ),
+                    onTap: () => context.push(Routes.folder(folder.id)),
                   ),
                 );
               },

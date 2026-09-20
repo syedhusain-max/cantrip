@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/taxonomy_registry.dart';
 import '../data/tool_registry.dart';
 import '../l10n/app_strings.dart';
 import '../models/freshness.dart';
+import '../router/app_router.dart';
 import '../state/library_state.dart';
 import '../widgets/prompt_card.dart';
 import '../widgets/tool_badge.dart';
-import 'prompt_detail_screen.dart';
 
 /// The guided flow: goal, then what you have to start from, then which
 /// tools you can actually use — ending on one recommendation with
@@ -292,11 +293,7 @@ class _CreateScreenState extends State<CreateScreen> {
             worksCount: library.signalsFor(best.variant).works,
             isFavourite: library.isFavourite(best.variant.id),
             onToggleFavourite: () => library.toggleFavourite(best.variant.id),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => PromptDetailScreen(variantId: best.variant.id),
-              ),
-            ),
+            onTap: () => context.push(Routes.prompt(best.variant.id)),
           ),
         ),
         if (result.alternatives.isNotEmpty) ...[
@@ -332,12 +329,7 @@ class _CreateScreenState extends State<CreateScreen> {
                   style: theme.textTheme.labelSmall,
                 ),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        PromptDetailScreen(variantId: alt.variant.id),
-                  ),
-                ),
+                onTap: () => context.push(Routes.prompt(alt.variant.id)),
               ),
             ),
         ],
