@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:promptcraft/l10n/app_strings.dart';
-import 'package:promptcraft/screens/settings_screen.dart';
-import 'package:promptcraft/screens/sign_in_screen.dart';
-import 'package:promptcraft/state/auth_controller.dart';
-import 'package:promptcraft/theme/theme_controller.dart';
+import 'package:cantrip/l10n/app_strings.dart';
+import 'package:cantrip/screens/settings_screen.dart';
+import 'package:cantrip/screens/sign_in_screen.dart';
+import 'package:cantrip/state/auth_controller.dart';
+import 'package:cantrip/theme/theme_controller.dart';
 
 class FakeAuthApi implements AuthApi {
   @override

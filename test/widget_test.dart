@@ -7,18 +7,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import 'package:promptcraft/app.dart';
-import 'package:promptcraft/router/app_router.dart';
-import 'package:promptcraft/l10n/app_strings.dart';
-import 'package:promptcraft/models/fork.dart';
-import 'package:promptcraft/models/freshness.dart';
-import 'package:promptcraft/models/prompt_folder.dart';
-import 'package:promptcraft/screens/prompt_detail_screen.dart';
-import 'package:promptcraft/widgets/prompt_card.dart';
-import 'package:promptcraft/state/auth_controller.dart';
-import 'package:promptcraft/state/library_state.dart';
-import 'package:promptcraft/utils/share_link.dart';
-import 'package:promptcraft/theme/theme_controller.dart';
+import 'package:cantrip/app.dart';
+import 'package:cantrip/router/app_router.dart';
+import 'package:cantrip/l10n/app_strings.dart';
+import 'package:cantrip/models/fork.dart';
+import 'package:cantrip/models/freshness.dart';
+import 'package:cantrip/models/prompt_folder.dart';
+import 'package:cantrip/screens/prompt_detail_screen.dart';
+import 'package:cantrip/widgets/prompt_card.dart';
+import 'package:cantrip/state/auth_controller.dart';
+import 'package:cantrip/state/library_state.dart';
+import 'package:cantrip/utils/share_link.dart';
+import 'package:cantrip/theme/theme_controller.dart';
 
 Widget buildTestApp() => MultiProvider(
   providers: [
@@ -27,7 +27,7 @@ Widget buildTestApp() => MultiProvider(
     // No api: the local-only build, which is what most tests exercise.
     ChangeNotifierProvider(create: (_) => AuthController()),
   ],
-  child: const PromptCraftApp(),
+  child: const CantripApp(),
 );
 
 /// Builds the real router at [location], which is how a shared link or a

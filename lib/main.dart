@@ -22,7 +22,7 @@ Future<void> main() async {
       : SyncedUserDataStore(
           local: local,
           remote: SupabaseUserDataApi(backend),
-          onError: (error) => debugPrint('PromptCraft sync: $error'),
+          onError: (error) => debugPrint('Cantrip sync: $error'),
         );
 
   final library = LibraryState(store: store);
@@ -55,7 +55,7 @@ Future<void> main() async {
         ChangeNotifierProvider.value(value: library),
         ChangeNotifierProvider.value(value: auth),
       ],
-      child: const PromptCraftApp(),
+      child: const CantripApp(),
     ),
   );
 }
@@ -76,7 +76,7 @@ Future<SupabaseClient?> _connectBackend() async {
     );
     return Supabase.instance.client;
   } catch (error) {
-    debugPrint('PromptCraft: Supabase unavailable, staying local ($error)');
+    debugPrint('Cantrip: Supabase unavailable, staying local ($error)');
     return null;
   }
 }

@@ -1,4 +1,4 @@
-# PromptCraft
+# Cantrip
 
 A cross-platform library of tested prompts and multi-step recipes for AI
 creative tools. One Flutter codebase, running on Android and the web.

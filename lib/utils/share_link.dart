@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 ///
 /// ```
 /// flutter build appbundle \
-///   --dart-define=SHARE_BASE_URL=https://owner.github.io/promptcraft
+///   --dart-define=SHARE_BASE_URL=https://owner.github.io/cantrip
 /// ```
 ///
 /// The default is a placeholder. A link copied from a build that didn't
@@ -17,7 +17,7 @@ import 'package:flutter/foundation.dart';
 /// checklist includes it.
 const shareBaseUrl = String.fromEnvironment(
   'SHARE_BASE_URL',
-  defaultValue: 'https://promptcraft.app',
+  defaultValue: 'https://cantrip.tools',
 );
 
 /// Absolute, pasteable link to an in-app [route] (e.g. `/prompt/var_x`).

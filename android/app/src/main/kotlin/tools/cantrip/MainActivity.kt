@@ -1,4 +1,4 @@
-package com.promptcraft.promptcraft
+package tools.cantrip
 
 import io.flutter.embedding.android.FlutterActivity
 

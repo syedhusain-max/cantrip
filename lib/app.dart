@@ -7,14 +7,14 @@ import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
 
-class PromptCraftApp extends StatefulWidget {
-  const PromptCraftApp({super.key});
+class CantripApp extends StatefulWidget {
+  const CantripApp({super.key});
 
   @override
-  State<PromptCraftApp> createState() => _PromptCraftAppState();
+  State<CantripApp> createState() => _CantripAppState();
 }
 
-class _PromptCraftAppState extends State<PromptCraftApp> {
+class _CantripAppState extends State<CantripApp> {
   // Built once: recreating the router on rebuild would reset navigation
   // state on every theme change.
   late final _router = createRouter();
@@ -23,7 +23,7 @@ class _PromptCraftAppState extends State<PromptCraftApp> {
   Widget build(BuildContext context) {
     final themeController = context.watch<ThemeController>();
     return MaterialApp.router(
-      title: 'PromptCraft',
+      title: 'Cantrip',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),

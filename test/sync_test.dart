@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:promptcraft/models/fork.dart';
-import 'package:promptcraft/models/prompt_folder.dart';
-import 'package:promptcraft/state/remote_user_data_api.dart';
-import 'package:promptcraft/state/synced_user_data_store.dart';
-import 'package:promptcraft/state/user_data_store.dart';
+import 'package:cantrip/models/fork.dart';
+import 'package:cantrip/models/prompt_folder.dart';
+import 'package:cantrip/state/remote_user_data_api.dart';
+import 'package:cantrip/state/synced_user_data_store.dart';
+import 'package:cantrip/state/user_data_store.dart';
 
 /// In-memory stand-ins. The point of the split between the sync rules and
 /// the Supabase calls is that the rules can be tested like this.

@@ -1,4 +1,4 @@
--- PromptCraft user data.
+-- Cantrip user data.
 --
 -- The prompt library itself is NOT here: it ships in the app bundle, so this
 -- database only ever holds what a user did — what they saved, organised and

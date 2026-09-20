@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:promptcraft/data/sample_library.dart';
-import 'package:promptcraft/data/taxonomy_registry.dart';
-import 'package:promptcraft/data/tool_registry.dart';
-import 'package:promptcraft/models/gallery_asset.dart';
-import 'package:promptcraft/models/prompt_variant.dart';
+import 'package:cantrip/data/sample_library.dart';
+import 'package:cantrip/data/taxonomy_registry.dart';
+import 'package:cantrip/data/tool_registry.dart';
+import 'package:cantrip/models/gallery_asset.dart';
+import 'package:cantrip/models/prompt_variant.dart';
 
 /// The automated half of the publishing gate.
 ///

@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-/// All PromptCraft UI copy, keyed by locale code.
+/// All Cantrip UI copy, keyed by locale code.
 ///
 /// English only for now. To add Arabic, add an `'ar'` map with the same
 /// keys and append `Locale('ar')` to `supportedLocales` in `app.dart` — no
@@ -23,7 +23,7 @@ class AppStrings {
 
   static const Map<String, Map<String, String>> _values = {
     'en': {
-      'app.name': 'PromptCraft',
+      'app.name': 'Cantrip',
 
       'nav.home': 'Home',
       'nav.library': 'Library',
