@@ -79,7 +79,23 @@ class ToolDef {
   /// Parameters and flags valid for this tool, used by the publish
   /// validator to catch prompts written against a superseded syntax
   /// (e.g. Midjourney's --cref becoming --oref in v7).
-  final List<String> syntaxFlags;
+  ///
+  /// Flags are declared per model where it matters, because "does this tool
+  /// accept this flag" is the wrong question — `--oref` is real Midjourney
+  /// syntax and still wrong in a prompt labelled v6. The question is
+  /// whether *this model* accepts it.
+  final List<FlagSpec> flags;
+
+  /// Every flag name this tool accepts on any model.
+  List<String> get syntaxFlags => [for (final f in flags) f.flag];
+
+  /// The spec for [flag], or null if the tool doesn't accept it at all.
+  FlagSpec? specFor(String flag) {
+    for (final f in flags) {
+      if (f.flag == flag) return f;
+    }
+    return null;
+  }
 
   final String? docsUrl;
 
@@ -90,9 +106,36 @@ class ToolDef {
     this.platforms = const [],
     this.sendCapability = SendCapability.clipboardOnly,
     this.modelLabels = const [],
-    this.syntaxFlags = const [],
+    this.flags = const [],
     this.docsUrl,
   });
 
   Color get accent => Color(accentValue);
+}
+
+/// One parameter a tool accepts, and which of its models accept it.
+class FlagSpec {
+  final String flag;
+
+  /// Model labels that accept this flag. Empty means every model does,
+  /// which is the common case — only versioned syntax needs narrowing.
+  final List<String> models;
+
+  /// Accepted values or range, kept next to the flag so the fact and the
+  /// validator can't drift apart. Documentation today; a value check later.
+  final String? values;
+
+  /// Why it behaves the way it does, when that isn't obvious. This is
+  /// where researched detail from the vendor's own docs belongs.
+  final String? note;
+
+  const FlagSpec(this.flag, {this.models = const [], this.values, this.note});
+
+  bool acceptedBy(String? modelLabel) {
+    if (models.isEmpty) return true;
+    // A variant that declares no model can't be checked against one; the
+    // publish gate requires a model label separately (PR-5).
+    if (modelLabel == null) return true;
+    return models.contains(modelLabel);
+  }
 }

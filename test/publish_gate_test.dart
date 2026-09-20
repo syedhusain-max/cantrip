@@ -138,28 +138,77 @@ void main() {
   });
 
   group('PR-3 native syntax is real syntax', () {
-    test('every flag used is on the target tool\'s allowlist', () {
+    test('every flag used is one the target tool accepts', () {
       for (final v in sampleVariants) {
         for (final step in v.steps) {
           final toolId = step.toolId ?? v.toolId;
           final tool = toolById(toolId);
-          if (tool == null || tool.syntaxFlags.isEmpty) continue;
-          final allowed = tool.syntaxFlags.toSet();
+          if (tool == null || tool.flags.isEmpty) continue;
 
           for (final template in _templatesOf(v)) {
             for (final match in _flag.allMatches(template)) {
               final flag = match.group(0)!;
               expect(
-                allowed,
-                contains(flag),
+                tool.specFor(flag),
+                isNotNull,
                 reason:
-                    '${v.id} step ${step.order} uses $flag, which is not in '
-                    '${tool.name}\'s known parameters for ${v.modelLabel}',
+                    '${v.id} step ${step.order} uses $flag, which is not a '
+                    '${tool.name} parameter at all',
               );
             }
           }
         }
       }
+    });
+
+    test('a flag is checked against the model the variant declares', () {
+      // The real failure this gate exists for: --oref is perfectly good
+      // Midjourney syntax and completely wrong in a prompt labelled v6.
+      // A flat allowlist passes that prompt; this doesn't.
+      for (final v in sampleVariants) {
+        for (final step in v.steps) {
+          final toolId = step.toolId ?? v.toolId;
+          final tool = toolById(toolId);
+          if (tool == null || tool.flags.isEmpty) continue;
+
+          for (final template in _templatesOf(v)) {
+            for (final match in _flag.allMatches(template)) {
+              final spec = tool.specFor(match.group(0)!);
+              if (spec == null) continue;
+              expect(
+                spec.acceptedBy(v.modelLabel),
+                isTrue,
+                reason:
+                    '${v.id} declares ${tool.name} ${v.modelLabel}, which '
+                    'does not accept ${spec.flag} (accepted by: '
+                    '${spec.models.join(", ")})',
+              );
+            }
+          }
+        }
+      }
+    });
+
+    test('the model check would actually reject a stale v6 prompt', () {
+      // Guards the guard. A gate nobody has seen fail is a gate nobody
+      // knows works, so this asserts the rule against the real registry
+      // rather than against the sample library, which is (correctly) clean.
+      final midjourney = toolById('midjourney')!;
+      final oref = midjourney.specFor('--oref')!;
+      final cref = midjourney.specFor('--cref')!;
+
+      expect(oref.acceptedBy('v7'), isTrue);
+      expect(
+        oref.acceptedBy('v6'),
+        isFalse,
+        reason: 'this is the exact staleness PR-3 was written to catch',
+      );
+      expect(cref.acceptedBy('v6'), isTrue);
+      expect(cref.acceptedBy('v7'), isFalse);
+
+      // A flag with no model restriction stays valid everywhere.
+      expect(midjourney.specFor('--ar')!.acceptedBy('v6'), isTrue);
+      expect(midjourney.specFor('--ar')!.acceptedBy('v7'), isTrue);
     });
 
     test('a declared model label is one the tool actually exposes', () {

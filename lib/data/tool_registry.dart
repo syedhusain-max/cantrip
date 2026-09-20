@@ -20,12 +20,12 @@ const List<ToolDef> toolRegistry = [
     platforms: ['web'],
     sendCapability: SendCapability.clipboardOnly,
     modelLabels: ['Soul 2.0', 'Soul ID', 'Soul'],
-    syntaxFlags: [
-      'soul_id',
-      'character',
-      'aspect_ratio',
-      'variations',
-      'scale',
+    flags: [
+      FlagSpec('soul_id'),
+      FlagSpec('character'),
+      FlagSpec('aspect_ratio'),
+      FlagSpec('variations'),
+      FlagSpec('scale'),
     ],
     docsUrl: 'https://higgsfield.ai',
   ),
@@ -36,12 +36,12 @@ const List<ToolDef> toolRegistry = [
     platforms: ['web'],
     sendCapability: SendCapability.clipboardOnly,
     modelLabels: ['Character 2.0', 'Consistent Character'],
-    syntaxFlags: [
-      'negative_prompt',
-      'aspect_ratio',
-      'seed',
-      'character',
-      'model',
+    flags: [
+      FlagSpec('negative_prompt'),
+      FlagSpec('aspect_ratio'),
+      FlagSpec('seed'),
+      FlagSpec('character'),
+      FlagSpec('model'),
     ],
     docsUrl: 'https://openart.ai',
   ),
@@ -52,22 +52,50 @@ const List<ToolDef> toolRegistry = [
     platforms: ['web', 'discord'],
     sendCapability: SendCapability.clipboardOnly,
     modelLabels: ['v7', 'v6.1', 'v6'],
-    // v7 replaced v6's --cref with --oref. Keeping both here would let a
-    // stale prompt pass the validator, so the allowlist tracks the label
-    // the variant declares.
-    syntaxFlags: [
-      '--ar',
-      '--v',
-      '--style',
-      '--stylize',
-      '--s',
-      '--sref',
-      '--sw',
-      '--oref',
-      '--ow',
-      '--chaos',
-      '--q',
-      '--no',
+    // Verified against Midjourney's own release notes, 2026-09-20:
+    // https://updates.midjourney.com/omni-reference-oref/
+    //
+    // This is the entry PR-3 exists for. `--oref` is real Midjourney syntax
+    // and still wrong in a prompt labelled v6, which a flat allowlist can't
+    // express — hence the per-model `models:`.
+    flags: [
+      FlagSpec('--ar', values: 'w:h, e.g. 3:4'),
+      FlagSpec('--v', values: '7, 6.1, 6'),
+      FlagSpec('--style', values: 'raw'),
+      FlagSpec('--stylize', values: '0-1000, default 100'),
+      FlagSpec('--s', values: '0-1000, alias of --stylize'),
+      FlagSpec('--sref', values: 'image URL or style code'),
+      FlagSpec('--sw', values: '0-1000, default 100'),
+      FlagSpec(
+        '--oref',
+        models: ['v7'],
+        values: 'URL of an already-hosted image',
+        note:
+            'Omni-reference, V7 and later only. It replaced v6\'s --cref. '
+            'Costs 2x GPU time and is incompatible with Fast, Draft and '
+            'Conversational modes and with --q 4.',
+      ),
+      FlagSpec(
+        '--ow',
+        models: ['v7'],
+        values: '0-1000, default 100',
+        note:
+            'Omni weight. Midjourney warns against going above roughly 400 '
+            'unless --stylize and --exp are also extreme: both compete with '
+            'omni-reference for influence, so high values can make results '
+            'worse rather than more faithful.',
+      ),
+      FlagSpec(
+        '--cref',
+        models: ['v6.1', 'v6'],
+        values: 'image URL',
+        note: 'Character reference. Superseded by --oref in v7.',
+      ),
+      FlagSpec('--cw', models: ['v6.1', 'v6'], values: '0-100'),
+      FlagSpec('--exp', models: ['v7'], values: '0-100'),
+      FlagSpec('--chaos'),
+      FlagSpec('--q', values: '0.25, 0.5, 1, 2, 4'),
+      FlagSpec('--no'),
     ],
     docsUrl: 'https://docs.midjourney.com',
   ),
@@ -78,7 +106,12 @@ const List<ToolDef> toolRegistry = [
     platforms: ['web'],
     sendCapability: SendCapability.clipboardOnly,
     modelLabels: ['Gen-4', 'Gen-3 Alpha'],
-    syntaxFlags: ['motion', 'duration', 'seed', 'camera'],
+    flags: [
+      FlagSpec('motion'),
+      FlagSpec('duration'),
+      FlagSpec('seed'),
+      FlagSpec('camera'),
+    ],
     docsUrl: 'https://runwayml.com',
   ),
   ToolDef(
@@ -88,7 +121,7 @@ const List<ToolDef> toolRegistry = [
     platforms: ['web', 'android', 'ios', 'desktop'],
     sendCapability: SendCapability.clipboardOnly,
     modelLabels: ['Claude Sonnet 5', 'Claude Opus 5'],
-    syntaxFlags: [],
+    flags: [],
     docsUrl: 'https://claude.ai',
   ),
   ToolDef(
@@ -98,7 +131,7 @@ const List<ToolDef> toolRegistry = [
     platforms: ['web'],
     sendCapability: SendCapability.clipboardOnly,
     modelLabels: ['Claude Opus 5 (Design)'],
-    syntaxFlags: [],
+    flags: [],
     docsUrl: 'https://claude.ai',
   ),
   ToolDef(
@@ -108,13 +141,13 @@ const List<ToolDef> toolRegistry = [
     platforms: ['web'],
     sendCapability: SendCapability.clipboardOnly,
     modelLabels: ['Avatar IV', 'Avatar III'],
-    syntaxFlags: [
-      'avatar',
-      'voice',
-      'script',
-      'background',
-      'aspect_ratio',
-      'captions',
+    flags: [
+      FlagSpec('avatar'),
+      FlagSpec('voice'),
+      FlagSpec('script'),
+      FlagSpec('background'),
+      FlagSpec('aspect_ratio'),
+      FlagSpec('captions'),
     ],
     docsUrl: 'https://heygen.com',
   ),
@@ -125,13 +158,13 @@ const List<ToolDef> toolRegistry = [
     platforms: ['web'],
     sendCapability: SendCapability.clipboardOnly,
     modelLabels: ['Kling 2.1', 'Kling 2'],
-    syntaxFlags: [
-      'mode',
-      'image',
-      'motion_strength',
-      'duration',
-      'loop',
-      'negative_prompt',
+    flags: [
+      FlagSpec('mode'),
+      FlagSpec('image'),
+      FlagSpec('motion_strength'),
+      FlagSpec('duration'),
+      FlagSpec('loop'),
+      FlagSpec('negative_prompt'),
     ],
     docsUrl: 'https://klingai.com',
   ),
@@ -147,14 +180,14 @@ const List<ToolDef> toolRegistry = [
     platforms: ['web'],
     sendCapability: SendCapability.clipboardOnly,
     modelLabels: ['Gamma 3', 'Gamma 2'],
-    syntaxFlags: [
-      'format',
-      'num_cards',
-      'theme',
-      'tone',
-      'audience',
-      'text_amount',
-      'image_source',
+    flags: [
+      FlagSpec('format'),
+      FlagSpec('num_cards'),
+      FlagSpec('theme'),
+      FlagSpec('tone'),
+      FlagSpec('audience'),
+      FlagSpec('text_amount'),
+      FlagSpec('image_source'),
     ],
     docsUrl: 'https://gamma.app',
   ),
@@ -167,7 +200,12 @@ const List<ToolDef> toolRegistry = [
     // stays clipboardOnly until it is tested on a real device.
     sendCapability: SendCapability.clipboardOnly,
     modelLabels: ['Magic Design', 'Magic Studio'],
-    syntaxFlags: ['style', 'dimensions', 'brand_kit', 'page_count'],
+    flags: [
+      FlagSpec('style'),
+      FlagSpec('dimensions'),
+      FlagSpec('brand_kit'),
+      FlagSpec('page_count'),
+    ],
     docsUrl: 'https://canva.com',
   ),
   ToolDef(
@@ -177,7 +215,12 @@ const List<ToolDef> toolRegistry = [
     platforms: ['web', 'desktop'],
     sendCapability: SendCapability.clipboardOnly,
     modelLabels: ['Figma Make', 'First Draft'],
-    syntaxFlags: ['frame_size', 'auto_layout', 'components', 'grid'],
+    flags: [
+      FlagSpec('frame_size'),
+      FlagSpec('auto_layout'),
+      FlagSpec('components'),
+      FlagSpec('grid'),
+    ],
     docsUrl: 'https://figma.com',
   ),
 ];
