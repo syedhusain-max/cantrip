@@ -65,3 +65,40 @@ disagree, observation wins and the doc's claim becomes a guardrail.
 If a draft turns out not to work at all, delete it. Seven drafts is not a
 target to hit; the library is better with four prompts that work than seven
 where three are hopeful.
+
+---
+
+## What the first Gamma session actually found (2026-09-20)
+
+Four runs across three drafts, on Gamma 3 via the API. One pattern explains
+every failure, and it is worth knowing before testing the image tools:
+
+**A prohibition only covers what it enumerates.**
+
+- The deck was told "do not invent figures". It didn't invent one — it
+  *restated* a real one wrongly, turning "up 30%" into a "40% More"
+  headline, and drew a chart asserting the in-house option costs $0.
+- The board update was told the same thing. It invented no figures either.
+  It invented *facts*: exit interviews that never happened, a diagnosis for
+  the churn, four remediation actions never taken, a $70K salary, a prior
+  board meeting, two deadlines.
+- The launch page was told "no testimonials, no invented statistics, no
+  logos". It produced none of those. It invented **tool names** instead —
+  writing a whole section about switching between ChatGPT, Claude and
+  Gemini, none of which this product supports.
+
+Each model obeyed the letter of its instruction and filled the nearest
+unguarded gap. Prose is the most dangerous format for this, because prose
+needs connective tissue and the model manufactures it — sparse bullets look
+sparse, but invented prose reads exactly like reporting.
+
+**Both fixes worked.** Enumerating the specific prohibitions — no causes,
+no salaries, no deadlines, no prior meetings, no invented examples, print
+"unknown" rather than a number — produced a board update that separates
+what the notes say from what they don't, and refuses the causal inference
+its own data invites. That is a better document than most people write.
+
+**What this means for the image tools:** expect the same shape. A
+constraint like "hold the face" will be obeyed while something unmentioned
+drifts — the hands, the label, the lighting. Write down what you did *not*
+ask for, and check that first.

@@ -977,12 +977,34 @@ final List<DraftVariant> draftVariants = [
         'https://help.gamma.app/en/articles/'
         '7838093-how-do-i-create-a-new-presentation-document-or-webpage-in-gamma',
     researchedOn: DateTime(2026, 9, 20),
+    // RUN 1 OBSERVED 2026-09-20, Gamma 3 via API, 30 credits.
+    //
+    // Two of three questions answered well: the document format does keep
+    // prose rather than collapsing into bullets, and "worst news first"
+    // worked — response time leads, then the slip, then the churn, with
+    // the bad numbers called "unacceptable" rather than smoothed.
+    //
+    // The third failed badly, and worse than the deck did. "Do not invent
+    // figures" guards figures; the output invented *facts*. From notes
+    // that said only "two churned, both under 6 months", it produced: exit
+    // interviews that never happened, a diagnosis ("misaligned
+    // expectations set during sales"), "neither cited pricing", and four
+    // remediation actions the company has never taken. It also invented a
+    // \$70K salary, a prior June board meeting that approved headcount, a
+    // logistics vertical strategy with buyer seniority and company size,
+    // two deadlines, and a runway impact of "3-4 weeks".
+    //
+    // Prose needs connective tissue, and the model manufactures it. That
+    // makes the document format more dangerous than the deck, not less —
+    // a deck's bullets are visibly sparse, while invented prose reads
+    // exactly like reporting.
     toVerify: [
-      'Confirm the document format keeps prose rather than collapsing into '
-          'slide-style bullets — the whole point of this variant.',
-      'Test with a month that went badly. Generators tend to smooth bad '
-          'news, and a board update that hides it is worse than none.',
-      'Check that every figure in the output traces to the source notes.',
+      'RE-RUN with the fixed prompt: does banning invented causes, history '
+          'and commitments actually stop it, or does prose always confabulate?',
+      'Check specifically for invented deadlines and salaries — those were '
+          'the two most quotable fabrications in run 1.',
+      'Test with a month that went well, to see whether the "worst news '
+          'first" ordering degrades when there is no bad news.',
     ],
     variables: const [
       PromptVariable(
@@ -1050,11 +1072,18 @@ final List<DraftVariant> draftVariants = [
             'not slides.\n'
             'Readers: {{audience}}. Tone: {{tone}}.\n'
             'Open with the three things that changed this month, worst news '
-            'first. Then the numbers with their deltas. End with what I need '
-            'from the reader: {{asks}}.\n'
-            'Use only these notes. Do not invent figures, and do not soften '
-            'anything that went badly:\n'
-            '{{source_notes}}',
+            'first. Then the numbers with their deltas. End with what I '
+            'need from the reader: {{asks}}.\n\n'
+            'Every sentence must be traceable to the notes below. Do not '
+            'add causes, diagnoses, salaries, costs, dates, deadlines, '
+            'percentages, prior meetings or decisions, or actions taken — '
+            'not even plausible ones. If the notes do not say why something '
+            'happened, write that the cause is not yet established. If a '
+            'number is not in the notes, do not print a number. Do not '
+            'describe conversations, interviews or analysis that the notes '
+            'do not mention.\n\n'
+            'Do not soften anything that went badly.\n\n'
+            'Notes:\n{{source_notes}}',
         settings: {'format': 'document', 'tone': '{{tone}}'},
         produces: StepOutput(
           id: 'draft_update',
@@ -1066,6 +1095,15 @@ final List<DraftVariant> draftVariants = [
         guardrails: [
           '"Worst news first" is doing real work. Left to itself the output '
               'buries the bad month in the middle where nobody reads it.',
+          'Observed, and the reason this prompt is written so defensively: '
+              'asked only not to invent *figures*, it invented facts. From '
+              '"two churned, both under 6 months" it produced exit '
+              'interviews that never happened, a cause, four remediation '
+              'actions never taken, a \$70K salary, a prior board meeting, '
+              'and two deadlines. Prose needs connective tissue and the '
+              'model manufactures it.',
+          'A document is more dangerous than a deck here, not less. Sparse '
+              'bullets look sparse; invented prose reads like reporting.',
         ],
         estMinutes: 3,
       ),
@@ -1106,9 +1144,25 @@ final List<DraftVariant> draftVariants = [
         'https://gamma.app/explore/content/guides/'
         'gamma-platform-presentations-documents-web-pages',
     researchedOn: DateTime(2026, 9, 20),
+    // RUN 1 OBSERVED 2026-09-20, Gamma 3 via API, ~30 credits.
+    //
+    // The format works: a real page structure — hero, problem, features,
+    // pricing, close — not stacked slides. No testimonials, no fake logos,
+    // no invented statistics. The instruction held for everything it
+    // enumerated.
+    //
+    // It then invented what the instruction did not enumerate: tool names.
+    // The page said "Switch from ChatGPT to Claude to Gemini" and built a
+    // whole comparison around it. The notes named no tools, and those are
+    // the wrong tools — this product's launch set is Midjourney,
+    // Higgsfield, OpenArt and Gamma. A launch page describing a product
+    // you don't sell is worse than a vague one.
+    //
+    // It also chose a fantasy-grimoire hero image unprompted, having read
+    // the name. Pleasant, but worth knowing it will theme from a name.
     toVerify: [
-      'Confirm the website format produces a real page structure rather '
-          'than stacked slides.',
+      'RE-RUN with the tool-name ban: does enumerating that prohibition '
+          'work as well as it did for statistics?',
       'Check what the published URL looks like and whether a custom domain '
           'is available on the tier you are on.',
       'Regenerate once and see whether edits survive — if not, say so, '
@@ -1179,7 +1233,9 @@ final List<DraftVariant> draftVariants = [
             'three things it does, what it costs, then "{{call_to_action}}" '
             'as the only action on the page.\n'
             'No testimonials, no invented statistics, no logos of companies '
-            'that have not used it.\n\n'
+            'that have not used it. Do not name any tool, company, product '
+            'or competitor that is not named in the source material below, '
+            'and do not invent example scenarios involving one.\n\n'
             'Source material:\n{{source_notes}}',
         settings: {'format': 'website', 'tone': '{{tone}}'},
         produces: StepOutput(
@@ -1193,6 +1249,11 @@ final List<DraftVariant> draftVariants = [
               'bearing. Generators fill social proof with fiction, and a '
               'fake quote on a launch page is the kind of thing screenshots '
               'outlive.',
+          'Observed: the ban only covers what it lists. With statistics '
+              'and testimonials forbidden it invented tool names instead, '
+              'building a whole section around switching between products '
+              'this one does not even support. Name the tools you do '
+              'support, or forbid naming any.',
         ],
         estMinutes: 3,
       ),
