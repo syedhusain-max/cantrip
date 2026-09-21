@@ -169,6 +169,30 @@ class AppStrings {
       'auth.syncOffer': 'Sign in to sync this across your devices',
       'auth.syncOfferAction': 'Sign in',
 
+      'author.edit': 'Record a test',
+      'author.title': 'Your test record',
+      'author.hint':
+          'This is your own record, shown to everyone with your name on it. '
+          'A verdict without a date stays an opinion.',
+      'author.verdict': 'What happened when you ran it',
+      'author.testedOn': 'Date you ran it',
+      'author.pickDate': 'Pick the date',
+      'author.testedModel': 'Model you ran it on',
+      'author.worksOn': 'Versions that work',
+      'author.failsOn': 'Versions that do not',
+      'author.note': 'What you observed',
+      'author.notePlaceholder':
+          'What broke, what to watch for, what you had to change.',
+      'author.creatorsChoice': 'Mark as your pick',
+      'author.redFlag': 'Flag: read the note first',
+      'author.save': 'Save record',
+      'author.saved': 'Test recorded',
+      'author.byAuthor': 'Author',
+      'author.byCommunity': 'From users',
+      'author.untestedNote':
+          'Nobody has run this yet. The dates below come with the library, '
+          'not from a test.',
+
       'pro.title': 'Cantrip Pro',
       'pro.pitch':
           'The library is free, always. Pro is for using it on client work.',

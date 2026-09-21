@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
 import 'state/auth_controller.dart';
+import 'state/author_notes_api.dart';
+import 'state/author_notes_controller.dart';
 import 'state/backend_config.dart';
 import 'state/entitlement_controller.dart';
 import 'state/library_state.dart';
@@ -35,6 +37,19 @@ Future<void> main() async {
   );
   entitlements.refresh();
 
+  // Author notes are readable by everyone, so this loads regardless of
+  // sign-in state. With no backend it stays empty and the app shows the
+  // bundled library exactly as shipped.
+  final notesApi = backend == null ? null : SupabaseAuthorNotesApi(backend);
+  final authorNotes = AuthorNotesController(save: notesApi?.save);
+  Future<void> refreshNotes() async {
+    if (notesApi == null) return;
+    final notes = await notesApi.fetchAll();
+    authorNotes.replaceAll(notes, isAuthor: await notesApi.isAuthor());
+  }
+
+  refreshNotes();
+
   final auth = AuthController(
     api: backend == null ? null : SupabaseAuthApi(backend),
     // Signing in changes what the store returns, so the library re-reads —
@@ -42,6 +57,8 @@ Future<void> main() async {
     onSignedIn: () async {
       await library.load();
       await entitlements.refresh();
+      // Author status belongs to the account, so it is re-read on sign-in.
+      await refreshNotes();
     },
     // Signing out wipes the device copy, then re-reads into an empty state.
     // The data is safe on the server; leaving it here would hand one
@@ -51,6 +68,7 @@ Future<void> main() async {
       await local.clear();
       await library.load();
       await entitlements.refresh();
+      await refreshNotes();
     },
   );
 
@@ -67,6 +85,7 @@ Future<void> main() async {
         ChangeNotifierProvider.value(value: library),
         ChangeNotifierProvider.value(value: auth),
         ChangeNotifierProvider.value(value: entitlements),
+        ChangeNotifierProvider.value(value: authorNotes),
       ],
       child: const CantripApp(),
     ),

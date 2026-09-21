@@ -16,6 +16,7 @@ import 'package:cantrip/models/prompt_folder.dart';
 import 'package:cantrip/screens/prompt_detail_screen.dart';
 import 'package:cantrip/widgets/prompt_card.dart';
 import 'package:cantrip/state/auth_controller.dart';
+import 'package:cantrip/state/author_notes_controller.dart';
 import 'package:cantrip/state/entitlement_controller.dart';
 import 'package:cantrip/state/library_state.dart';
 import 'package:cantrip/utils/share_link.dart';
@@ -28,6 +29,7 @@ Widget buildTestApp() => MultiProvider(
     // No api: the local-only build, which is what most tests exercise.
     ChangeNotifierProvider(create: (_) => AuthController()),
     ChangeNotifierProvider(create: (_) => EntitlementController()),
+    ChangeNotifierProvider(create: (_) => AuthorNotesController()),
   ],
   child: const CantripApp(),
 );
@@ -43,6 +45,7 @@ Widget buildTestApp() => MultiProvider(
       ChangeNotifierProvider(create: (_) => LibraryState()),
       ChangeNotifierProvider(create: (_) => AuthController()),
       ChangeNotifierProvider(create: (_) => EntitlementController()),
+      ChangeNotifierProvider(create: (_) => AuthorNotesController()),
     ],
     child: MaterialApp.router(
       localizationsDelegates: const [
@@ -65,6 +68,7 @@ Widget wrapScreen(Widget screen) => MultiProvider(
     // No api: the local-only build, which is what most tests exercise.
     ChangeNotifierProvider(create: (_) => AuthController()),
     ChangeNotifierProvider(create: (_) => EntitlementController()),
+    ChangeNotifierProvider(create: (_) => AuthorNotesController()),
   ],
   child: MaterialApp(
     localizationsDelegates: const [

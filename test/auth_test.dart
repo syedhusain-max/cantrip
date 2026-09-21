@@ -6,6 +6,7 @@ import 'package:cantrip/l10n/app_strings.dart';
 import 'package:cantrip/screens/settings_screen.dart';
 import 'package:cantrip/screens/sign_in_screen.dart';
 import 'package:cantrip/state/auth_controller.dart';
+import 'package:cantrip/state/author_notes_controller.dart';
 import 'package:cantrip/state/entitlement_controller.dart';
 import 'package:cantrip/theme/theme_controller.dart';
 
@@ -46,6 +47,7 @@ Widget wrap(Widget screen, AuthController auth) => MultiProvider(
     ChangeNotifierProvider(create: (_) => ThemeController()),
     ChangeNotifierProvider.value(value: auth),
     ChangeNotifierProvider(create: (_) => EntitlementController()),
+    ChangeNotifierProvider(create: (_) => AuthorNotesController()),
   ],
   child: MaterialApp(
     localizationsDelegates: const [

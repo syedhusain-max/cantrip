@@ -15,12 +15,16 @@ import '../models/prompt_step.dart';
 import '../models/prompt_variable.dart';
 import '../models/prompt_variant.dart';
 import '../router/app_router.dart';
+import '../models/author_note.dart';
 import '../state/auth_controller.dart';
+import '../state/author_notes_controller.dart';
 import '../state/entitlement_controller.dart';
 import '../state/entitlement_gate.dart';
 import '../state/library_state.dart';
 import '../utils/date_format.dart';
 import '../utils/share_link.dart';
+import '../widgets/author_note_card.dart';
+import '../widgets/author_note_sheet.dart';
 import '../widgets/freshness_pill.dart';
 import '../widgets/gallery_placeholder.dart';
 import '../widgets/step_card.dart';
@@ -192,6 +196,36 @@ class _PromptDetailScreenState extends State<PromptDetailScreen> {
     );
   }
 
+  /// Opens the author's test record for this prompt.
+  void _recordTest(PromptVariant variant) {
+    final notes = context.read<AuthorNotesController>();
+    AuthorNoteSheet.show(
+      context,
+      variant: variant,
+      existing: notes.noteFor(variant.id),
+      onSave: (note) async {
+        await _saveAuthorNote(note);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.strings.t('author.saved')),
+            behavior: SnackBarBehavior.floating,
+            width: 320,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _saveAuthorNote(AuthorNote note) async {
+    final notes = context.read<AuthorNotesController>();
+    // Optimistic: the record shows immediately, and a failed write leaves
+    // the author looking at their own note rather than at a spinner. The
+    // next fetch reconciles.
+    notes.put(note);
+    await notes.save?.call(note);
+  }
+
   void _showForkSheet(LibraryState library, PromptVariant variant) {
     final strings = context.strings;
     final gate = EntitlementGate(
@@ -268,6 +302,14 @@ class _PromptDetailScreenState extends State<PromptDetailScreen> {
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
+          // Only authors see this. The server enforces the same rule; this
+          // just avoids showing a button that would fail.
+          if (context.watch<AuthorNotesController>().isAuthor)
+            IconButton(
+              tooltip: strings.t('author.edit'),
+              icon: const Icon(Icons.fact_check_outlined),
+              onPressed: () => _recordTest(variant),
+            ),
           IconButton(
             tooltip: strings.t('detail.copyLink'),
             icon: const Icon(Icons.link),
@@ -351,6 +393,21 @@ class _PromptDetailScreenState extends State<PromptDetailScreen> {
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
+                    ),
+
+                    // -------------------------------------- author record
+                    // Above the freshness block on purpose: a person who
+                    // actually ran it outranks a decaying date.
+                    const SizedBox(height: 20),
+                    Builder(
+                      builder: (context) {
+                        final notes = context.watch<AuthorNotesController>();
+                        return AuthorNoteCard(
+                          note: notes.noteFor(variant.id),
+                          badges: notes.badgesFor(variant.id, signals),
+                          signals: signals,
+                        );
+                      },
                     ),
 
                     // ------------------------------------------- freshness
