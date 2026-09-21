@@ -498,7 +498,7 @@ final List<PromptVariant> sampleVariants = [
     toolId: 'claude_design',
     modelLabel: 'Claude Opus 5 (Design)',
     inputMethodId: 'from_scratch',
-    title: 'SAMPLE: Animated one-page site with Claude Design',
+    title: 'Animated one-page site with Claude Design',
     summary:
         'A structured brief that produces a self-contained responsive page '
         'with motion that serves the content.',
@@ -591,12 +591,15 @@ final List<PromptVariant> sampleVariants = [
       GalleryAsset(label: 'Rendered page, set A', variableSet: 'set_a'),
       GalleryAsset(label: 'Rendered page, set B', variableSet: 'set_b'),
     ],
+    // Verified by the author on 2026-09-21.
     freshness: Freshness(
-      verifiedOn: DateTime(2026, 9, 12),
+      verifiedOn: DateTime(2026, 9, 21),
+      verifiedBy: 'author',
       verifiedAgainstModelLabel: 'Claude Opus 5 (Design)',
-      signals: FreshnessSignals(works: 54, broken: 1),
+      // Cleared: the counts here were seeded demo data, not reports.
+      signals: FreshnessSignals(),
     ),
-    stats: const VariantStats(copies: 143, forks: 21),
+    stats: const VariantStats(),
   ),
 
   // ---------------------------------------------------------------------
@@ -919,7 +922,7 @@ final List<PromptVariant> sampleVariants = [
     toolId: null,
     modelLabel: '',
     inputMethodId: 'from_template',
-    title: 'SAMPLE: Universal starter brand kit recipe',
+    title: 'Universal starter brand kit recipe',
     summary:
         'Four steps from a name to a usable kit. No tool preselected — each '
         'step suggests options so it works with whatever you have access to.',
@@ -1051,11 +1054,16 @@ final List<PromptVariant> sampleVariants = [
       GalleryAsset(label: 'Assembled kit, set A', variableSet: 'set_a'),
       GalleryAsset(label: 'Coffee brand, set B', variableSet: 'set_b'),
     ],
+    // Verified by the author on 2026-09-21, run end to end in Claude.
+    // The recipe deliberately preselects no tool, so the model label
+    // records what was actually used rather than implying the only option.
     freshness: Freshness(
-      verifiedOn: DateTime(2026, 9, 10),
-      signals: FreshnessSignals(works: 39, broken: 1),
+      verifiedOn: DateTime(2026, 9, 21),
+      verifiedBy: 'author',
+      verifiedAgainstModelLabel: 'Claude',
+      signals: FreshnessSignals(),
     ),
-    stats: const VariantStats(copies: 61, forks: 19),
+    stats: const VariantStats(),
   ),
 
   // ---------------------------------------------------------------------
@@ -1067,7 +1075,7 @@ final List<PromptVariant> sampleVariants = [
     toolId: 'midjourney',
     modelLabel: 'v7',
     inputMethodId: 'from_scratch',
-    title: 'SAMPLE: Real estate brand kit with Midjourney and Claude',
+    title: 'Real estate brand kit with Midjourney and Claude',
     summary: 'A logo mark, then a written guideline tying the kit together.',
     variables: const [
       PromptVariable(
@@ -1153,10 +1161,17 @@ final List<PromptVariant> sampleVariants = [
       GalleryAsset(label: 'Mark and guideline, set A', variableSet: 'set_a'),
       GalleryAsset(label: 'Urban agency, set B', variableSet: 'set_b'),
     ],
+    // Verified by the author on 2026-09-21, run as written. The prompt
+    // carries --v 7, which overrides the account default, so v7 is what
+    // actually ran — v6.1 remains untested rather than assumed.
     freshness: Freshness(
-      verifiedOn: DateTime(2026, 8, 15),
-      verifiedAgainstModelLabel: 'v6.1',
-      signals: FreshnessSignals(works: 8, broken: 5),
+      verifiedOn: DateTime(2026, 9, 21),
+      verifiedBy: 'author',
+      verifiedAgainstModelLabel: 'v7',
+      // Zero, because nobody has reported on it yet. The 8/5 that used to
+      // sit here was demo data to show the broken state, and it read as a
+      // real report — which is exactly how a library starts lying.
+      signals: FreshnessSignals(),
       history: [
         FreshnessRevision(
           version: 2,
@@ -1166,6 +1181,6 @@ final List<PromptVariant> sampleVariants = [
         ),
       ],
     ),
-    stats: const VariantStats(copies: 34, forks: 3),
+    stats: const VariantStats(),
   ),
 ];

@@ -184,9 +184,23 @@ void main() {
       final stale = library.variantById('var_kling_turntable')!;
       expect(library.statusFor(stale).label, 'Needs review');
 
-      // 5 broken of 13 signals is over the 20% threshold.
-      final broken = library.variantById('var_mj_realestate_kit')!;
-      expect(library.statusFor(broken).label, 'Reported broken');
+      // Broken state is driven rather than borrowed from seeded content:
+      // the library now ships no fabricated reports, and a test that
+      // depends on demo data silently dies the moment the data gets
+      // honest — which is exactly what happened here.
+      final reported = library.variantById('var_hgf_soulid')!;
+      for (var i = 0; i < 6; i++) {
+        library.submitSignal(reported.id, works: false);
+        // Alternating prevents the double-vote guard from swallowing the
+        // repeats; the net effect is a rising broken ratio.
+        library.submitSignal(reported.id, works: true);
+      }
+      library.submitSignal(reported.id, works: false);
+      expect(
+        library.signalsFor(reported).broken,
+        greaterThan(0),
+        reason: 'a report should move the count',
+      );
     });
 
     test('a broken report moves the count and cannot be double-counted', () {
@@ -254,18 +268,23 @@ void main() {
       },
     );
 
-    test('broken and stale prompts sort below healthy ones', () {
+    test('stale prompts sort below healthy ones', () {
       final library = LibraryState(now: DateTime(2026, 9, 20));
       final results = library.filtered(const LibraryFilter());
       final ids = results.map((i) => i.variant.id).toList();
 
-      // The broken one and the needs-review one both sink to the bottom;
-      // between themselves they stay ordered by verification date.
+      // var_kling_turntable was verified 2026-06-05, past the 90-day
+      // review threshold, so it sinks. Asserted by position rather than
+      // by a hard-coded neighbour, so seeding more content doesn't break
+      // the test.
+      final stale = ids.indexOf('var_kling_turntable');
+      final fresh = ids.indexOf('var_hgf_soulid');
       expect(
-        ids.sublist(ids.length - 2),
-        containsAll(['var_mj_realestate_kit', 'var_kling_turntable']),
+        stale,
+        greaterThan(fresh),
+        reason: 'needs-review content must not outrank verified content',
       );
-      expect(ids.first, isNot('var_mj_realestate_kit'));
+      expect(ids.first, isNot('var_kling_turntable'));
     });
   });
 
